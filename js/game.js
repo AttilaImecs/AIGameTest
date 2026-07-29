@@ -107,6 +107,7 @@ export class Game {
     this.ui.showPlaying();
     this.timer.start();
     this.canvas.focus();
+    this.startLoop();
   }
 
   startLoop() {
@@ -151,7 +152,7 @@ export class Game {
     this.player.update(this.input, this.level, this.rocks, dt);
 
     for (const hazard of this.hazards) {
-      hazard.update(dt);
+      hazard.update(dt, this.rocks);
       if (hazard.collidesWith(this.player.x, this.player.y, this.player.radius)) {
         this.triggerFail('Ouch!', 'The snail hit a moving hazard.');
         return;

@@ -12,8 +12,19 @@ export class MovingHazard {
     this.direction = 1;
   }
 
-  update(dt) {
-    this.progress += this.speed * dt * this.direction;
+  update(dt, rocks = []) {
+    const nextProgress = Math.max(0, Math.min(1, this.progress + this.speed * dt * this.direction));
+    const nextX = this.x + (this.x2 - this.x) * nextProgress;
+    const nextY = this.y + (this.y2 - this.y) * nextProgress;
+    const col = Math.floor(nextX / TILE_SIZE);
+    const row = Math.floor(nextY / TILE_SIZE);
+
+    if (rocks.some((r) => r.col === col && r.row === row)) {
+      this.direction *= -1;
+      return;
+    }
+
+    this.progress = nextProgress;
     if (this.progress >= 1) {
       this.progress = 1;
       this.direction = -1;
