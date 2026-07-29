@@ -43,6 +43,11 @@ export class Game {
 
     this.resizeCanvas();
     window.addEventListener('resize', () => this.resizeCanvas());
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', () => this.resizeCanvas());
+    }
+
+    this.touchControls = document.getElementById('touch-controls');
   }
 
   resizeCanvas() {
@@ -55,8 +60,17 @@ export class Game {
   }
 
   setCanvasSize(cols, rows) {
-    const maxWidth = window.innerWidth - 40;
-    const maxHeight = window.innerHeight - 40;
+    // Use the visual viewport when available so the Android address bar
+    // (which can collapse/expand) doesn't squash the canvas. Fall back to
+    // window.innerWidth/innerHeight on older browsers.
+    const vv = window.visualViewport;
+    const maxWidth = (vv ? vv.width : window.innerWidth) - 8;
+    // Reserve room for the D-pad on touch devices (~210px) so the canvas
+    // doesn't render behind the controls.
+    const isTouchOnly = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+    const dpadHeight = isTouchOnly ? 220 : 8;
+    const maxHeight = (vv ? vv.height : window.innerHeight) - dpadHeight;
+
     const baseWidth = cols * 32;
     const baseHeight = rows * 32;
     const scale = Math.min(1, maxWidth / baseWidth, maxHeight / baseHeight);

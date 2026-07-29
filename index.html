@@ -2,13 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#1a2e1a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.webmanifest">
   <title>Snail Maze</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <div id="game-container">
     <canvas id="game-canvas" tabindex="0"></canvas>
+
+    <div id="touch-controls" class="overlay hidden">
+      <div class="dpad">
+        <button class="touch-btn touch-up" data-touch="up" aria-label="Up">▲</button>
+        <button class="touch-btn touch-left" data-touch="left" aria-label="Left">◀</button>
+        <button class="touch-btn touch-right" data-touch="right" aria-label="Right">▶</button>
+        <button class="touch-btn touch-down" data-touch="down" aria-label="Down">▼</button>
+      </div>
+      <button class="touch-btn touch-slow" data-touch="slow" aria-label="Slow crawl">SLOW</button>
+    </div>
 
     <div id="hud" class="overlay hidden">
       <div class="hud-left">

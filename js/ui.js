@@ -35,6 +35,8 @@ export class UI {
       this.screenWin,
     ];
 
+    this.touchControls = document.getElementById('touch-controls');
+
     this.buildLevelSelectButtons();
   }
 
@@ -54,6 +56,7 @@ export class UI {
       screen.classList.add('hidden');
     }
     this.hud.classList.add('hidden');
+    if (this.touchControls) this.touchControls.classList.add('hidden');
   }
 
   showMenu() {
@@ -69,6 +72,12 @@ export class UI {
   showPlaying() {
     this.hideAllScreens();
     this.hud.classList.remove('hidden');
+    if (this.touchControls) this.touchControls.classList.remove('hidden');
+    // Best-effort portrait lock; Android requires a user gesture first,
+    // and this is the first time the user has tapped to start.
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('portrait').catch(() => {});
+    }
   }
 
   showLevelComplete(levelName) {

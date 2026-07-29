@@ -2,6 +2,14 @@ import { Game, STATUS } from './game.js';
 import { UI } from './ui.js';
 import { LEVELS, parseLevel, drawMaze } from './maze.js';
 
+// Register service worker for offline PWA install. Failures are non-fatal
+// (e.g. http://localhost in some browsers blocks SW).
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
 const canvas = document.getElementById('game-canvas');
 const ui = new UI();
 const game = new Game(canvas, ui);

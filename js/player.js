@@ -251,6 +251,7 @@ export class Player {
 export class Input {
   constructor() {
     this.keys = {};
+    this.touch = { up: false, down: false, left: false, right: false, slow: false };
     this.up = false;
     this.down = false;
     this.left = false;
@@ -259,6 +260,8 @@ export class Input {
 
     window.addEventListener('keydown', (e) => this.onKey(e, true));
     window.addEventListener('keyup', (e) => this.onKey(e, false));
+
+    this.bindTouchButtons();
   }
 
   onKey(e, pressed) {
@@ -268,10 +271,45 @@ export class Input {
       e.preventDefault();
     }
 
-    this.up = this.keys['ArrowUp'] || this.keys['KeyW'];
-    this.down = this.keys['ArrowDown'] || this.keys['KeyS'];
-    this.left = this.keys['ArrowLeft'] || this.keys['KeyA'];
-    this.right = this.keys['ArrowRight'] || this.keys['KeyD'];
-    this.slow = this.keys['ShiftLeft'] || this.keys['ShiftRight'];
+    this.recompute();
+  }
+
+  recompute() {
+    this.up = this.keys['ArrowUp'] || this.keys['KeyW'] || this.touch.up;
+    this.down = this.keys['ArrowDown'] || this.keys['KeyS'] || this.touch.down;
+    this.left = this.keys['ArrowLeft'] || this.keys['KeyA'] || this.touch.left;
+    this.right = this.keys['ArrowRight'] || this.keys['KeyD'] || this.touch.right;
+    this.slow = this.keys['ShiftLeft'] || this.keys['ShiftRight'] || this.touch.slow;
+  }
+
+  bindTouchButtons() {
+    const buttons = document.querySelectorAll('[data-touch]');
+    if (!buttons.length) return;
+
+    // Map each button's data-touch attribute to the input field it controls.
+    const buttonToField = {
+      up: 'up', down: 'down', left: 'left', right: 'right', slow: 'slow',
+    };
+
+    const setButtonState = (btn, pressed) => {
+      const field = buttonToField[btn.dataset.touch];
+      if (!field) return;
+      this.touch[field] = pressed;
+      btn.classList.toggle('pressed', pressed);
+      this.recompute();
+    };
+
+    for (const btn of buttons) {
+      // Pointer events handle touch, mouse, and stylus with the same code.
+      // capture = true keeps tracking the gesture even if the finger drifts off.
+      const down = (e) => { e.preventDefault(); btn.setPointerCapture?.(e.pointerId); setButtonState(btn, true); };
+      const up = (e) => { e.preventDefault(); setButtonState(btn, false); };
+
+      btn.addEventListener('pointerdown', down);
+      btn.addEventListener('pointerup', up);
+      btn.addEventListener('pointercancel', up);
+      btn.addEventListener('pointerleave', up);
+      btn.addEventListener('contextmenu', (e) => e.preventDefault());
+    }
   }
 }
