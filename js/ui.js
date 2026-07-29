@@ -36,6 +36,16 @@ export class UI {
     ];
 
     this.touchControls = document.getElementById('touch-controls');
+    this.btnRotate = document.getElementById('btn-rotate');
+    this.landscapeMode = false;
+    if (this.btnRotate) {
+      this.btnRotate.addEventListener('click', () => {
+        this.landscapeMode = !this.landscapeMode;
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock(this.landscapeMode ? 'landscape' : 'portrait').catch(() => {});
+        }
+      });
+    }
 
     this.buildLevelSelectButtons();
 

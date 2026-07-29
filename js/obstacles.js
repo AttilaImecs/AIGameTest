@@ -92,7 +92,7 @@ export class ChasingCat {
   constructor(config) {
     this.x = config.col * TILE_SIZE + TILE_SIZE / 2;
     this.y = config.row * TILE_SIZE + TILE_SIZE / 2;
-    this.speed = config.speed || 35;
+    this.speed = config.speed || 48;
     this.radius = TILE_SIZE * 0.35;
     this.repathTimer = 0;
     this.distanceField = null;
