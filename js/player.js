@@ -173,7 +173,7 @@ export class Player {
       const alpha = 0.5 * (1 - i / SLIME_TRAIL_LENGTH);
       if (alpha <= 0) continue;
       const tx = t.col * TILE_SIZE, ty = t.row * TILE_SIZE;
-      ctx.fillStyle = `rgba(200, 230, 210, ${alpha.toFixed(3)})`;
+      ctx.fillStyle = `rgba(46, 74, 30, ${alpha.toFixed(3)})`;
       ctx.fillRect(tx + 3, ty + 3, TILE_SIZE - 6, TILE_SIZE - 6);
     }
 
