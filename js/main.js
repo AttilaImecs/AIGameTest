@@ -14,6 +14,9 @@ function drawMenuPreview() {
 }
 
 ui.onPlay(() => game.start());
+ui.onTestGame(() => ui.showLevelSelect());
+ui.onSelectLevel((index) => game.startTestLevel(index));
+ui.onBackToMenu(() => game.goToMenu());
 ui.onContinue(() => game.continueToNextLevel());
 ui.onRetry(() => game.retryLevel());
 ui.onMenu(() => game.goToMenu());

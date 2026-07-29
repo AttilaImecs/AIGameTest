@@ -30,9 +30,17 @@
         <li>Use <kbd>Arrow keys</kbd> or <kbd>WASD</kbd> to move</li>
         <li>Hold <kbd>Shift</kbd> for a slow crawl</li>
         <li>You have <strong>3 minutes</strong> per level</li>
-        <li>Complete all <strong>5 levels</strong> to win</li>
+        <li>Complete all <strong>6 levels</strong> to win</li>
       </ul>
       <button id="btn-play" class="btn btn-primary">Play</button>
+      <button id="btn-test-game" class="btn btn-secondary">Test Game</button>
+    </div>
+
+    <div id="screen-level-select" class="screen overlay hidden">
+      <h2>Test Game</h2>
+      <p class="subtitle">Jump straight into any level to try it out.</p>
+      <div id="level-select-group" class="btn-group level-select-group"></div>
+      <button id="btn-back-to-menu" class="btn btn-secondary">Back to Menu</button>
     </div>
 
     <div id="screen-level-complete" class="screen overlay hidden">
@@ -52,7 +60,7 @@
 
     <div id="screen-win" class="screen overlay hidden">
       <h2>You Escaped the Maze!</h2>
-      <p>All 5 levels conquered. You're a master snail navigator!</p>
+      <p>All 6 levels conquered. You're a master snail navigator!</p>
       <button id="btn-play-again" class="btn btn-primary">Play Again</button>
     </div>
   </div>
