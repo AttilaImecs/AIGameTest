@@ -92,7 +92,7 @@ export class ChasingCat {
   constructor(config) {
     this.x = config.col * TILE_SIZE + TILE_SIZE / 2;
     this.y = config.row * TILE_SIZE + TILE_SIZE / 2;
-    this.speed = config.speed || 48;
+    this.speed = config.speed || 105;
     this.radius = TILE_SIZE * 0.35;
     this.repathTimer = 0;
     this.distanceField = null;
@@ -215,7 +215,7 @@ export class ChasingCat {
       ctx.save();
       ctx.globalAlpha = alpha;
       ctx.fillStyle = '#ff6f91';
-      drawHeart(ctx, h.x, riseY, 5 + t * 2);
+      drawHeart(ctx, h.x, riseY, 5 + t * 6);
       ctx.restore();
     }
 

@@ -79,6 +79,9 @@ export const LEVELS = [
       '#################',
     ],
     hazards: [],
+    cats: [
+      { col: 7, row: 6, speed: 105 },
+    ],
   },
   {
     name: 'Rocky Trail',
@@ -95,6 +98,9 @@ export const LEVELS = [
       '####################',
     ],
     hazards: [],
+    cats: [
+      { col: 13, row: 1, speed: 105 },
+    ],
   },
   {
     name: 'Final Gauntlet',
@@ -111,6 +117,9 @@ export const LEVELS = [
     ],
     hazards: [
       { col: 9, row: 5, col2: 18, row2: 5, speed: 1.5 },
+    ],
+    cats: [
+      { col: 12, row: 5, speed: 105 },
     ],
   },
   {
@@ -134,13 +143,13 @@ export const LEVELS = [
       '#####################',
     ],
     hazards: [
-      { col: 1, row: 14, col2: 19, row2: 14, speed: 1.4 },
-      { col: 1, row: 4, col2: 1, row2: 12, speed: 1.4 },
+      { col: 1, row: 14, col2: 19, row2: 14, speed: 0.73 },
+      { col: 1, row: 4, col2: 1, row2: 12, speed: 1.64 },
     ],
     cats: [
-      { col: 10, row: 4, speed: 48 },
-      { col: 19, row: 4, speed: 48 },
-      { col: 8, row: 10, speed: 48 },
+      { col: 10, row: 4, speed: 105 },
+      { col: 19, row: 4, speed: 105 },
+      { col: 6, row: 12, speed: 105 },
     ],
   },
 ];
