@@ -1,4 +1,4 @@
-export const LEVEL_TIME = 180;
+export const LEVEL_TIME = 120;
 export const WARNING_THRESHOLD = 30;
 
 export class Timer {

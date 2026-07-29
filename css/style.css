@@ -67,7 +67,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 16px;
+  padding: 5px 16px;
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), transparent);
   font-weight: 600;
   font-size: 1rem;
@@ -75,14 +75,17 @@ body {
 
 .hud-left {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 8px;
 }
 
 #level-name {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   opacity: 0.8;
   font-weight: 400;
+  padding-left: 8px;
+  border-left: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 #timer-display {

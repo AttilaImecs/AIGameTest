@@ -2,6 +2,7 @@ import { LEVELS, parseLevel, drawMaze, TILE } from './maze.js';
 import { Player, Input } from './player.js';
 import { Timer } from './timer.js';
 import { createHazards, createCats } from './obstacles.js';
+import { playLevelMusic, stopMusic } from './music.js';
 
 export const STATUS = {
   MENU: 'menu',
@@ -117,12 +118,14 @@ export class Game {
     this.testMode = false;
     this.status = STATUS.MENU;
     this.stopLoop();
+    stopMusic();
     this.ui.showMenu();
   }
 
   goToLevelSelect() {
     this.status = STATUS.MENU;
     this.stopLoop();
+    stopMusic();
     this.ui.showLevelSelect();
   }
 
@@ -142,6 +145,7 @@ export class Game {
     this.gateTimer = 0;
     this.gateOpenProgress = 0;
     this.setCanvasSize(this.level.cols, this.level.rows);
+    playLevelMusic(index);
   }
 
   continueToNextLevel() {
@@ -259,6 +263,7 @@ export class Game {
     this.status = STATUS.LEVEL_COMPLETE;
     this.timer.stop();
     this.stopLoop();
+    stopMusic();
 
     if (this.testMode) {
       this.goToLevelSelect();
@@ -277,6 +282,7 @@ export class Game {
     this.status = STATUS.GAME_OVER;
     this.failReason = message;
     this.stopLoop();
+    stopMusic();
 
     if (this.testMode) {
       this.goToLevelSelect();

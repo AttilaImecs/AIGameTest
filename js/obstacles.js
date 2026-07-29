@@ -176,7 +176,11 @@ export class ChasingCat {
     }
 
     const dx = player.x - this.x, dy = player.y - this.y;
-    const overlapping = Math.sqrt(dx * dx + dy * dy) < this.radius + player.radius;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const hugDist = this.radius + player.radius;
+    const proximityDist = hugDist + 24;
+    const overlapping = dist < hugDist;
+    const nearby = dist < proximityDist;
 
     if (overlapping) {
       this.hugging = true;
@@ -187,6 +191,15 @@ export class ChasingCat {
       }
     } else {
       this.hugging = false;
+      if (nearby) {
+        this.heartTimer += dt;
+        if (this.heartTimer >= HEART_SPAWN_INTERVAL * 2) {
+          this.heartTimer = 0;
+          this.hearts.push({ x: this.x + (Math.random() - 0.5) * 12, y: this.y - 8, age: 0 });
+        }
+      } else {
+        this.heartTimer = HEART_SPAWN_INTERVAL * 2;
+      }
       this.moveToward(dt, level);
     }
 
@@ -211,37 +224,99 @@ export class ChasingCat {
     const angle = Math.atan2(this.facing.y, this.facing.x);
     ctx.rotate(angle);
 
-    ctx.fillStyle = '#90a4ae';
+    const bob = this.hugging ? Math.sin(time * 6) * 1 : 0;
+    ctx.translate(0, bob);
+
+    const FUR = '#ffb74d';
+    const FUR_DARK = '#e65100';
+    const FUR_LIGHT = '#fff3e0';
+
+    // tail, curling behind
+    ctx.fillStyle = FUR;
     ctx.beginPath();
-    ctx.moveTo(-9, -2);
-    ctx.quadraticCurveTo(-16, -6, -14, -10);
-    ctx.quadraticCurveTo(-12, -5, -8, 2);
+    ctx.moveTo(-11, -1);
+    ctx.quadraticCurveTo(-20, -6, -17, -13);
+    ctx.quadraticCurveTo(-15, -6, -10, 2);
     ctx.closePath();
     ctx.fill();
-
-    ctx.fillStyle = '#90a4ae';
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 10, 8, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#546e7a';
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = FUR_DARK;
+    ctx.lineWidth = 1;
     ctx.stroke();
 
+    // body, smaller, trailing behind the head
+    ctx.fillStyle = FUR;
     ctx.beginPath();
-    ctx.moveTo(4, -7); ctx.lineTo(8, -13); ctx.lineTo(9, -5);
-    ctx.closePath();
+    ctx.ellipse(-7, 0, 8, 6, 0, 0, Math.PI * 2);
     ctx.fill();
+
+    // ears (drawn before the head so only the tips poke out)
+    ctx.fillStyle = FUR;
     ctx.beginPath();
-    ctx.moveTo(4, 7); ctx.lineTo(8, 13); ctx.lineTo(9, 5);
+    ctx.moveTo(1, -8); ctx.lineTo(3, -16); ctx.lineTo(7, -9);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(1, 8); ctx.lineTo(3, 16); ctx.lineTo(7, 9);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#ffccbc';
+    ctx.beginPath();
+    ctx.moveTo(2.5, -9.5); ctx.lineTo(3.5, -13.5); ctx.lineTo(5.5, -10);
+    ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(2.5, 9.5); ctx.lineTo(3.5, 13.5); ctx.lineTo(5.5, 10);
+    ctx.closePath(); ctx.fill();
+
+    // head: big and round for chibi/cute proportions
+    ctx.fillStyle = FUR;
+    ctx.beginPath();
+    ctx.arc(4, 0, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = FUR_DARK;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // muzzle highlight
+    ctx.fillStyle = FUR_LIGHT;
+    ctx.beginPath();
+    ctx.ellipse(8, 1, 4, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // big eyes with a highlight dot
+    ctx.fillStyle = '#263238';
+    ctx.beginPath();
+    ctx.arc(6, -4, 2.6, 0, Math.PI * 2);
+    ctx.arc(6, 4, 2.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(6.8, -4.8, 0.9, 0, Math.PI * 2);
+    ctx.arc(6.8, 3.2, 0.9, 0, Math.PI * 2);
+    ctx.fill();
+
+    // pink nose
+    ctx.fillStyle = '#f8607a';
+    ctx.beginPath();
+    ctx.moveTo(11, -1.3); ctx.lineTo(11, 1.3); ctx.lineTo(13, 0);
     ctx.closePath();
     ctx.fill();
 
-    const bob = this.hugging ? Math.sin(time * 6) * 1 : 0;
-    ctx.fillStyle = '#263238';
+    // whiskers
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+    ctx.lineWidth = 0.7;
     ctx.beginPath();
-    ctx.arc(6, -3 + bob, 1.4, 0, Math.PI * 2);
-    ctx.arc(6, 3 + bob, 1.4, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.moveTo(9, -2); ctx.lineTo(16, -4);
+    ctx.moveTo(9.5, 0); ctx.lineTo(17, 0);
+    ctx.moveTo(9, 2); ctx.lineTo(16, 4);
+    ctx.stroke();
+
+    // upturned smile
+    ctx.strokeStyle = FUR_DARK;
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.arc(9.5, -1, 2, 0.4, Math.PI * 0.8);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(9.5, 1, 2, -Math.PI * 0.8, -0.4, true);
+    ctx.stroke();
 
     ctx.restore();
   }

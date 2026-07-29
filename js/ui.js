@@ -38,6 +38,24 @@ export class UI {
     this.touchControls = document.getElementById('touch-controls');
 
     this.buildLevelSelectButtons();
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        const activeScreen = this.screens.find((s) => !s.classList.contains('hidden'));
+        if (!activeScreen) return;
+
+        let target;
+        if (activeScreen === this.screenMenu) target = this.btnPlay;
+        else if (activeScreen === this.screenLevelComplete) target = this.btnContinue;
+        else if (activeScreen === this.screenFail) target = this.btnRetry;
+        else if (activeScreen === this.screenWin) target = this.btnPlayAgain;
+
+        if (target) {
+          e.preventDefault();
+          target.click();
+        }
+      }
+    });
   }
 
   buildLevelSelectButtons() {
