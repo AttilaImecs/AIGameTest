@@ -22,7 +22,7 @@ todos:
     status: completed
   - id: polish-test
     content: Add snail animation, responsive scaling, and playtest all win/lose paths
-    status: in_progress
+    status: completed
 isProject: false
 ---
 

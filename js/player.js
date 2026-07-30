@@ -3,11 +3,11 @@ import { TILE_SIZE, TILE, getTile, isSolidTile } from './maze.js';
 const BASE_SPEED = 120;
 const SLOW_SPEED = 70;
 const PLAYER_RADIUS = 10;
+const SLIME_TRAIL_LENGTH = 9;
 
 export class Player {
   constructor(startCol, startRow) {
     this.reset(startCol, startRow);
-    this.trail = [];
     this.bobPhase = 0;
     this.facing = { x: 1, y: 0 };
   }
@@ -16,7 +16,8 @@ export class Player {
     this.x = startCol * TILE_SIZE + TILE_SIZE / 2;
     this.y = startRow * TILE_SIZE + TILE_SIZE / 2;
     this.hasKey = false;
-    this.trail = [];
+    this.slimeTrail = [];
+    this.lastTile = null;
     this.bobPhase = 0;
   }
 
@@ -65,9 +66,14 @@ export class Player {
     this.y = resolved.y;
     this.bobPhase += dt * 8;
 
-    this.trail.push({ x: this.x, y: this.y, age: 0 });
-    if (this.trail.length > 20) this.trail.shift();
-    for (const t of this.trail) t.age += dt;
+    const currentTile = this.getTileCoords();
+    if (!this.lastTile || currentTile.col !== this.lastTile.col || currentTile.row !== this.lastTile.row) {
+      if (this.lastTile) {
+        this.slimeTrail.unshift({ col: this.lastTile.col, row: this.lastTile.row });
+        if (this.slimeTrail.length > SLIME_TRAIL_LENGTH) this.slimeTrail.pop();
+      }
+      this.lastTile = currentTile;
+    }
 
     return { pushedRock: resolved.pushedRock };
   }
@@ -162,13 +168,13 @@ export class Player {
   }
 
   draw(ctx, time) {
-    for (const t of this.trail) {
-      const alpha = Math.max(0, 0.4 - t.age * 0.8);
+    for (let i = 0; i < this.slimeTrail.length; i++) {
+      const t = this.slimeTrail[i];
+      const alpha = 0.5 * (1 - i / SLIME_TRAIL_LENGTH);
       if (alpha <= 0) continue;
-      ctx.fillStyle = `rgba(129, 199, 132, ${alpha})`;
-      ctx.beginPath();
-      ctx.arc(t.x, t.y, 4, 0, Math.PI * 2);
-      ctx.fill();
+      const tx = t.col * TILE_SIZE, ty = t.row * TILE_SIZE;
+      ctx.fillStyle = `rgba(46, 74, 30, ${alpha.toFixed(3)})`;
+      ctx.fillRect(tx + 3, ty + 3, TILE_SIZE - 6, TILE_SIZE - 6);
     }
 
     const bob = Math.sin(this.bobPhase) * 1.5;
@@ -181,6 +187,17 @@ export class Player {
 
     ctx.fillStyle = '#8d6e63';
     ctx.beginPath();
+    ctx.moveTo(-13, -5);
+    ctx.quadraticCurveTo(-25, -2, -27, 0);
+    ctx.quadraticCurveTo(-25, 2, -13, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#6d4c41';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = '#8d6e63';
+    ctx.beginPath();
     ctx.ellipse(0, 0, 14, 10, 0, 0, Math.PI * 2);
     ctx.fill();
 
@@ -190,8 +207,20 @@ export class Player {
 
     ctx.fillStyle = '#a1887f';
     ctx.beginPath();
-    ctx.arc(-4, -2, 5, 0, Math.PI * 2);
+    ctx.arc(-3, -3, 7, 0, Math.PI * 2);
     ctx.fill();
+    ctx.strokeStyle = '#6d4c41';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.strokeStyle = '#6d4c41';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(-3, -3, 4.5, 0.3, Math.PI * 1.6);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(-1.5, -3.5, 2.2, 0.5, Math.PI * 1.8);
+    ctx.stroke();
 
     const eyeWiggle = Math.sin(time * 4) * 2;
     ctx.strokeStyle = '#5d4037';
@@ -222,6 +251,7 @@ export class Player {
 export class Input {
   constructor() {
     this.keys = {};
+    this.touch = { up: false, down: false, left: false, right: false, slow: false };
     this.up = false;
     this.down = false;
     this.left = false;
@@ -230,6 +260,8 @@ export class Input {
 
     window.addEventListener('keydown', (e) => this.onKey(e, true));
     window.addEventListener('keyup', (e) => this.onKey(e, false));
+
+    this.bindTouchButtons();
   }
 
   onKey(e, pressed) {
@@ -239,10 +271,45 @@ export class Input {
       e.preventDefault();
     }
 
-    this.up = this.keys['ArrowUp'] || this.keys['KeyW'];
-    this.down = this.keys['ArrowDown'] || this.keys['KeyS'];
-    this.left = this.keys['ArrowLeft'] || this.keys['KeyA'];
-    this.right = this.keys['ArrowRight'] || this.keys['KeyD'];
-    this.slow = this.keys['ShiftLeft'] || this.keys['ShiftRight'];
+    this.recompute();
+  }
+
+  recompute() {
+    this.up = this.keys['ArrowUp'] || this.keys['KeyW'] || this.touch.up;
+    this.down = this.keys['ArrowDown'] || this.keys['KeyS'] || this.touch.down;
+    this.left = this.keys['ArrowLeft'] || this.keys['KeyA'] || this.touch.left;
+    this.right = this.keys['ArrowRight'] || this.keys['KeyD'] || this.touch.right;
+    this.slow = this.keys['ShiftLeft'] || this.keys['ShiftRight'] || this.touch.slow;
+  }
+
+  bindTouchButtons() {
+    const buttons = document.querySelectorAll('[data-touch]');
+    if (!buttons.length) return;
+
+    // Map each button's data-touch attribute to the input field it controls.
+    const buttonToField = {
+      up: 'up', down: 'down', left: 'left', right: 'right', slow: 'slow',
+    };
+
+    const setButtonState = (btn, pressed) => {
+      const field = buttonToField[btn.dataset.touch];
+      if (!field) return;
+      this.touch[field] = pressed;
+      btn.classList.toggle('pressed', pressed);
+      this.recompute();
+    };
+
+    for (const btn of buttons) {
+      // Pointer events handle touch, mouse, and stylus with the same code.
+      // capture = true keeps tracking the gesture even if the finger drifts off.
+      const down = (e) => { e.preventDefault(); btn.setPointerCapture?.(e.pointerId); setButtonState(btn, true); };
+      const up = (e) => { e.preventDefault(); setButtonState(btn, false); };
+
+      btn.addEventListener('pointerdown', down);
+      btn.addEventListener('pointerup', up);
+      btn.addEventListener('pointercancel', up);
+      btn.addEventListener('pointerleave', up);
+      btn.addEventListener('contextmenu', (e) => e.preventDefault());
+    }
   }
 }

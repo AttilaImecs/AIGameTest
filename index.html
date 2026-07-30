@@ -2,13 +2,29 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#1a2e1a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.webmanifest">
   <title>Snail Maze</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <div id="game-container">
     <canvas id="game-canvas" tabindex="0"></canvas>
+
+    <div id="touch-controls" class="overlay hidden">
+      <button id="btn-rotate" class="rotate-btn" aria-label="Toggle landscape">⟳</button>
+      <div class="dpad">
+        <button class="touch-btn touch-up" data-touch="up" aria-label="Up">▲</button>
+        <button class="touch-btn touch-left" data-touch="left" aria-label="Left">◀</button>
+        <button class="touch-btn touch-right" data-touch="right" aria-label="Right">▶</button>
+        <button class="touch-btn touch-down" data-touch="down" aria-label="Down">▼</button>
+      </div>
+      <button class="touch-btn touch-slow" data-touch="slow" aria-label="Slow crawl">SLOW</button>
+    </div>
 
     <div id="hud" class="overlay hidden">
       <div class="hud-left">
@@ -30,9 +46,17 @@
         <li>Use <kbd>Arrow keys</kbd> or <kbd>WASD</kbd> to move</li>
         <li>Hold <kbd>Shift</kbd> for a slow crawl</li>
         <li>You have <strong>3 minutes</strong> per level</li>
-        <li>Complete all <strong>5 levels</strong> to win</li>
+        <li>Complete all <strong>6 levels</strong> to win</li>
       </ul>
       <button id="btn-play" class="btn btn-primary">Play</button>
+      <button id="btn-test-game" class="btn btn-secondary">Test Game</button>
+    </div>
+
+    <div id="screen-level-select" class="screen overlay hidden">
+      <h2>Test Game</h2>
+      <p class="subtitle">Jump straight into any level to try it out.</p>
+      <div id="level-select-group" class="btn-group level-select-group"></div>
+      <button id="btn-back-to-menu" class="btn btn-secondary">Back to Menu</button>
     </div>
 
     <div id="screen-level-complete" class="screen overlay hidden">
@@ -52,7 +76,7 @@
 
     <div id="screen-win" class="screen overlay hidden">
       <h2>You Escaped the Maze!</h2>
-      <p>All 5 levels conquered. You're a master snail navigator!</p>
+      <p>All 6 levels conquered. You're a master snail navigator!</p>
       <button id="btn-play-again" class="btn btn-primary">Play Again</button>
     </div>
   </div>

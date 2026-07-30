@@ -32,9 +32,11 @@ export const LEVELS = [
       '####################',
       '#S.................#',
       '#.####.#####.#####.#',
-      '#....M....M........#',
+      '#....MM...MM.......#',
       '#.####.#####.#####.#',
-      '#......M...........#',
+      '#......MM..........#',
+      '#.####.#####.#####.#',
+      '#..................#',
       '#.####.#####.#####.#',
       '#..................E',
       '####################',
@@ -59,32 +61,46 @@ export const LEVELS = [
   {
     name: 'Locked Gate',
     grid: [
-      '####################',
-      '#S.................#',
-      '#######.#########.##',
-      '#........#.........#',
-      '#....K...#.........#',
-      '#........#.........#',
-      '#######G#########.##',
-      '#.................E#',
-      '####################',
+      '#################',
+      '#S..............#',
+      '#...#...........#',
+      '###.#####.###.###',
+      '#.#.#...#...#...#',
+      '#.#.#.#.#######.#',
+      '#.#...#...#.....#',
+      '#.#######.#.#####',
+      '#.......#.#.....#',
+      '#.###.###.#####.#',
+      '#.#K#...#.......#',
+      '#.#.###.#######.#',
+      '#.....#.........#',
+      '###############G#',
+      '#...............E',
+      '#################',
     ],
     hazards: [],
+    cats: [
+      { col: 7, row: 6, speed: 105 },
+    ],
   },
   {
     name: 'Rocky Trail',
     grid: [
       '####################',
       '#S.................#',
-      '#.####.#####.#####.#',
+      '######R#############',
       '#..R...........R...#',
       '#.####.#####.#####.#',
       '#..................#',
-      '#.####.#####.#####.#',
+      '############R#######',
+      '#..................#',
       '#........R.........E',
       '####################',
     ],
     hazards: [],
+    cats: [
+      { col: 13, row: 1, speed: 105 },
+    ],
   },
   {
     name: 'Final Gauntlet',
@@ -94,13 +110,46 @@ export const LEVELS = [
       '#.##.####.####.#####.#',
       '#....K..R....M...W...#',
       '#.##.####.####.#####.#',
-      '#.....G....R.........#',
-      '#.##.####.####.#####.#',
+      '#....M..R....W..M....#',
+      '##############G#######',
       '#..M....W...........E#',
       '######################',
     ],
     hazards: [
-      { col: 10, row: 4, col2: 16, row2: 4, speed: 1.5 },
+      { col: 9, row: 5, col2: 18, row2: 5, speed: 1.5 },
+    ],
+    cats: [
+      { col: 12, row: 5, speed: 105 },
+    ],
+  },
+  {
+    name: "Daniel's Cats",
+    grid: [
+      '#####################',
+      '#S###################',
+      '#.....#.....#..W#...#',
+      '#####.#.###.###M#.#.#',
+      '#..M#.#.#.....#.M.#.#',
+      '#.###.#.#####.#####.#',
+      '#.#...#...#.........#',
+      '#.#.###.#.#########.#',
+      '#.#.#K.R#...#.....#.#',
+      '#.#.###.###.#.###.#.#',
+      '#.#...#..M#.#.#W#.#.#',
+      '#.###.#####.#.#.#.#.#',
+      '#..WW.......#...#...#',
+      '###############G#####',
+      '#...................E',
+      '#####################',
+    ],
+    hazards: [
+      { col: 1, row: 14, col2: 19, row2: 14, speed: 0.73 },
+      { col: 1, row: 4, col2: 1, row2: 12, speed: 1.64 },
+    ],
+    cats: [
+      { col: 10, row: 4, speed: 105 },
+      { col: 19, row: 4, speed: 105 },
+      { col: 6, row: 12, speed: 105 },
     ],
   },
 ];
@@ -137,6 +186,7 @@ export function parseLevel(levelData) {
     rocks,
     hasKeyOnMap,
     hazards: levelData.hazards.map((h) => ({ ...h })),
+    cats: (levelData.cats || []).map((c) => ({ ...c })),
     cols: grid[0].length,
     rows: grid.length,
   };
@@ -155,7 +205,7 @@ export function isSolidTile(tile, hasKey) {
   return false;
 }
 
-export function drawMaze(ctx, level, rocks, time) {
+export function drawMaze(ctx, level, rocks, time, doorProgress = 0, gateProgress = 0) {
   const { cols, rows } = level;
 
   for (let row = 0; row < rows; row++) {
@@ -190,8 +240,21 @@ export function drawMaze(ctx, level, rocks, time) {
           ctx.arc(x + 22, y + 20, 2, 0, Math.PI * 2);
           ctx.fill();
         } else if (tile === TILE.GATE) {
+          const gp = gateProgress;
+          const gatePanelW = (TILE_SIZE - 8) / 2;
+          const gateLeftX = x + 4 + (x + 1 - (x + 4)) * gp;
+          const gateRightX = x + 4 + gatePanelW + (x + TILE_SIZE - gatePanelW - 1 - (x + 4 + gatePanelW)) * gp;
+
+          if (gp > 0) {
+            ctx.fillStyle = COLORS.path;
+            ctx.fillRect(x + 2, y + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+          }
+
           ctx.fillStyle = COLORS.gate;
-          ctx.fillRect(x + 4, y + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+          ctx.fillRect(gateLeftX, y + 4, gatePanelW, TILE_SIZE - 8);
+          ctx.fillRect(gateRightX, y + 4, gatePanelW, TILE_SIZE - 8);
+
+          ctx.globalAlpha = 1 - gp;
           ctx.strokeStyle = '#4e342e';
           ctx.lineWidth = 2;
           for (let i = 0; i < 3; i++) {
@@ -201,6 +264,7 @@ export function drawMaze(ctx, level, rocks, time) {
             ctx.lineTo(barX, y + TILE_SIZE - 6);
             ctx.stroke();
           }
+          ctx.globalAlpha = 1;
         } else if (tile === TILE.KEY) {
           ctx.fillStyle = COLORS.key;
           ctx.beginPath();
@@ -212,18 +276,35 @@ export function drawMaze(ctx, level, rocks, time) {
           const glow = 0.5 + Math.sin(time * 3) * 0.2;
           ctx.fillStyle = COLORS.exitGlow.replace('0.4', glow.toFixed(2));
           ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+
+          const dp = doorProgress;
+          const doorPanelW = (TILE_SIZE - 12) / 2;
+          const doorLeftX = x + 6 + (x + 2 - (x + 6)) * dp;
+          const doorRightX = x + 6 + doorPanelW + (x + TILE_SIZE - doorPanelW - 2 - (x + 6 + doorPanelW)) * dp;
+
+          if (dp > 0) {
+            ctx.fillStyle = '#0d2b12';
+            ctx.fillRect(x + 6, y + 4, TILE_SIZE - 12, TILE_SIZE - 8);
+          }
+
           ctx.fillStyle = COLORS.exit;
-          ctx.fillRect(x + 6, y + 4, TILE_SIZE - 12, TILE_SIZE - 8);
+          ctx.fillRect(doorLeftX, y + 4, doorPanelW, TILE_SIZE - 8);
+          ctx.fillRect(doorRightX, y + 4, doorPanelW, TILE_SIZE - 8);
+
+          ctx.globalAlpha = 1 - dp;
           ctx.fillStyle = '#1b5e20';
           ctx.fillRect(x + TILE_SIZE / 2 - 3, y + TILE_SIZE / 2, 6, TILE_SIZE / 2 - 6);
+          ctx.globalAlpha = 1;
         }
       }
     }
   }
 
   for (const rock of rocks) {
-    const x = rock.col * TILE_SIZE;
-    const y = rock.row * TILE_SIZE;
+    const cx = rock.renderX ?? rock.col * TILE_SIZE + TILE_SIZE / 2;
+    const cy = rock.renderY ?? rock.row * TILE_SIZE + TILE_SIZE / 2;
+    const x = cx - TILE_SIZE / 2;
+    const y = cy - TILE_SIZE / 2;
     ctx.fillStyle = COLORS.rock;
     ctx.beginPath();
     ctx.roundRect(x + 4, y + 6, TILE_SIZE - 8, TILE_SIZE - 10, 4);
