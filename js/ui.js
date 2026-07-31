@@ -1,4 +1,4 @@
-import { LEVELS } from './maze.js';
+import { getCombinedLevels } from './customLevels.js';
 
 export class UI {
   constructor() {
@@ -13,13 +13,17 @@ export class UI {
     this.screenLevelComplete = document.getElementById('screen-level-complete');
     this.screenFail = document.getElementById('screen-fail');
     this.screenWin = document.getElementById('screen-win');
+    this.screenEditor = document.getElementById('screen-editor');
 
     this.levelCompleteText = document.getElementById('level-complete-text');
     this.failTitle = document.getElementById('fail-title');
     this.failMessage = document.getElementById('fail-message');
+    this.menuLevelCount = document.getElementById('menu-level-count');
+    this.winLevelCount = document.getElementById('win-level-count');
 
     this.btnPlay = document.getElementById('btn-play');
     this.btnTestGame = document.getElementById('btn-test-game');
+    this.btnEditor = document.getElementById('btn-editor');
     this.levelSelectGroup = document.getElementById('level-select-group');
     this.btnBackToMenu = document.getElementById('btn-back-to-menu');
     this.btnContinue = document.getElementById('btn-continue');
@@ -33,6 +37,7 @@ export class UI {
       this.screenLevelComplete,
       this.screenFail,
       this.screenWin,
+      this.screenEditor,
     ];
 
     this.touchControls = document.getElementById('touch-controls');
@@ -70,7 +75,7 @@ export class UI {
 
   buildLevelSelectButtons() {
     this.levelSelectGroup.innerHTML = '';
-    LEVELS.forEach((level, index) => {
+    getCombinedLevels().forEach(({ level }, index) => {
       const btn = document.createElement('button');
       btn.className = 'btn btn-primary level-btn';
       btn.textContent = `${index + 1}. ${level.name}`;
@@ -89,12 +94,22 @@ export class UI {
 
   showMenu() {
     this.hideAllScreens();
+    this.buildLevelSelectButtons();
+    const count = getCombinedLevels().length;
+    if (this.menuLevelCount) this.menuLevelCount.textContent = String(count);
+    if (this.winLevelCount) this.winLevelCount.textContent = String(count);
     this.screenMenu.classList.remove('hidden');
   }
 
   showLevelSelect() {
     this.hideAllScreens();
+    this.buildLevelSelectButtons();
     this.screenLevelSelect.classList.remove('hidden');
+  }
+
+  showEditor() {
+    this.hideAllScreens();
+    this.screenEditor.classList.remove('hidden');
   }
 
   showPlaying() {
@@ -123,11 +138,12 @@ export class UI {
 
   showWin() {
     this.hideAllScreens();
+    if (this.winLevelCount) this.winLevelCount.textContent = String(getCombinedLevels().length);
     this.screenWin.classList.remove('hidden');
   }
 
   updateHUD(levelIndex, levelName, timer, hasKey, showKey) {
-    this.levelDisplay.textContent = `Level ${levelIndex + 1} / ${LEVELS.length}`;
+    this.levelDisplay.textContent = `Level ${levelIndex + 1} / ${getCombinedLevels().length}`;
     this.levelName.textContent = levelName;
     this.timerDisplay.textContent = timer.format();
 
@@ -152,6 +168,10 @@ export class UI {
 
   onTestGame(callback) {
     this.btnTestGame.addEventListener('click', callback);
+  }
+
+  onEditor(callback) {
+    this.btnEditor.addEventListener('click', callback);
   }
 
   onSelectLevel(callback) {

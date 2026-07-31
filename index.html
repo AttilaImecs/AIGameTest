@@ -46,10 +46,11 @@
         <li>Use <kbd>Arrow keys</kbd> or <kbd>WASD</kbd> to move</li>
         <li>Hold <kbd>Shift</kbd> for a slow crawl</li>
         <li>You have <strong>3 minutes</strong> per level</li>
-        <li>Complete all <strong>7 levels</strong> to win</li>
+        <li>Complete all <strong id="menu-level-count">7</strong> levels to win</li>
       </ul>
       <button id="btn-play" class="btn btn-primary">Play</button>
       <button id="btn-test-game" class="btn btn-secondary">Test Game</button>
+      <button id="btn-editor" class="btn btn-secondary">Level Editor</button>
     </div>
 
     <div id="screen-level-select" class="screen overlay hidden">
@@ -57,6 +58,81 @@
       <p class="subtitle">Jump straight into any level to try it out.</p>
       <div id="level-select-group" class="btn-group level-select-group"></div>
       <button id="btn-back-to-menu" class="btn btn-secondary">Back to Menu</button>
+    </div>
+
+    <div id="screen-editor" class="screen editor-screen overlay hidden">
+      <div class="editor-panel">
+        <h2>Level Editor</h2>
+
+        <div class="editor-row">
+          <label class="editor-field">
+            Name
+            <input id="editor-level-name" type="text" placeholder="My Level" maxlength="40">
+          </label>
+        </div>
+
+        <div class="editor-row editor-row-tight">
+          <label class="editor-field editor-field-small">
+            Cols
+            <input id="editor-cols" type="number" min="8" max="40" value="16">
+          </label>
+          <label class="editor-field editor-field-small">
+            Rows
+            <input id="editor-rows" type="number" min="6" max="30" value="10">
+          </label>
+          <button id="editor-new-grid-btn" class="btn btn-secondary btn-small">New Grid</button>
+          <button id="editor-clear-btn" class="btn btn-secondary btn-small">Clear</button>
+        </div>
+
+        <div class="editor-tool-palette" id="editor-tool-palette">
+          <button class="tool-btn active" data-tool="wall">🧱 Wall</button>
+          <button class="tool-btn" data-tool="path">⬜ Erase</button>
+          <button class="tool-btn" data-tool="mud">🟤 Mud</button>
+          <button class="tool-btn" data-tool="water">💧 Water</button>
+          <button class="tool-btn" data-tool="rock">🪨 Rock</button>
+          <button class="tool-btn" data-tool="key">🔑 Key</button>
+          <button class="tool-btn" data-tool="gate">🚪 Gate</button>
+          <button class="tool-btn" data-tool="start">🐌 Start</button>
+          <button class="tool-btn" data-tool="exit">🏁 Exit</button>
+          <button class="tool-btn" data-tool="cat">🐱 Cat</button>
+          <button class="tool-btn" data-tool="hazard">🔴 Hazard</button>
+        </div>
+        <p class="editor-hint" id="editor-hint">Click or drag on the grid to place walls.</p>
+
+        <div class="editor-lists">
+          <div class="editor-list-block">
+            <h3>Hazards</h3>
+            <div id="editor-hazard-list" class="editor-entity-list"></div>
+          </div>
+          <div class="editor-list-block">
+            <h3>Cats</h3>
+            <div id="editor-cat-list" class="editor-entity-list"></div>
+          </div>
+        </div>
+
+        <p id="editor-warning" class="editor-warning hidden"></p>
+        <p id="editor-error" class="editor-error hidden"></p>
+
+        <div class="editor-row">
+          <button id="editor-test-play-btn" class="btn btn-primary">Test Play</button>
+        </div>
+        <p id="editor-status" class="editor-status">Not tested yet — beat the level once to unlock Publish.</p>
+
+        <div class="editor-row editor-row-tight">
+          <label class="editor-field editor-field-small">
+            Level #
+            <input id="editor-publish-position" type="number" min="1" value="1">
+          </label>
+          <button id="editor-publish-btn" class="btn btn-primary" disabled>Publish</button>
+        </div>
+
+        <button id="editor-back-btn" class="btn btn-secondary">Back to Menu</button>
+
+        <div class="editor-list-block editor-my-levels">
+          <h3>My Published Levels</h3>
+          <div id="editor-my-levels-list" class="editor-entity-list"></div>
+        </div>
+      </div>
     </div>
 
     <div id="screen-level-complete" class="screen overlay hidden">
@@ -76,7 +152,7 @@
 
     <div id="screen-win" class="screen overlay hidden">
       <h2>You Escaped the Maze!</h2>
-      <p>All 7 levels conquered. You're a master snail navigator!</p>
+      <p>All <span id="win-level-count">7</span> levels conquered. You're a master snail navigator!</p>
       <button id="btn-play-again" class="btn btn-primary">Play Again</button>
     </div>
   </div>

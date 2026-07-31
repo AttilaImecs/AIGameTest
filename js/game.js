@@ -1,11 +1,13 @@
-import { LEVELS, parseLevel, drawMaze, TILE, TILE_SIZE } from './maze.js';
+import { parseLevel, drawMaze, TILE, TILE_SIZE } from './maze.js';
 import { Player, Input } from './player.js';
 import { Timer } from './timer.js';
 import { createHazards, createCats } from './obstacles.js';
 import { playLevelMusic, stopMusic } from './music.js';
+import { getCombinedLevels } from './customLevels.js';
 
 export const STATUS = {
   MENU: 'menu',
+  EDITOR: 'editor',
   PLAYING: 'playing',
   LEVEL_COMPLETE: 'level_complete',
   GAME_OVER: 'game_over',
@@ -65,6 +67,8 @@ export class Game {
     this.splashParticles = [];
     this.pendingFailTitle = '';
     this.pendingFailMessage = '';
+    this.customPlaytest = false;
+    this.onCustomPlaytestExit = null;
 
     this.resizeCanvas();
     window.addEventListener('resize', () => this.resizeCanvas());
@@ -77,7 +81,7 @@ export class Game {
 
   resizeCanvas() {
     if (!this.level) {
-      const defaultLevel = parseLevel(LEVELS[0]);
+      const defaultLevel = parseLevel(getCombinedLevels()[0].level);
       this.setCanvasSize(defaultLevel.cols, defaultLevel.rows);
       return;
     }
@@ -153,8 +157,15 @@ export class Game {
     this.ui.showLevelSelect();
   }
 
-  loadLevel(index) {
-    const levelData = LEVELS[index];
+  goToEditor() {
+    this.testMode = false;
+    this.status = STATUS.EDITOR;
+    this.stopLoop();
+    stopMusic();
+    this.ui.showEditor();
+  }
+
+  applyLevelData(levelData) {
     this.level = parseLevel(levelData);
     this.rocks = this.level.rocks.map((r) => ({
       ...r,
@@ -176,11 +187,33 @@ export class Game {
     this.splashTimer = 0;
     this.splashParticles = [];
     this.setCanvasSize(this.level.cols, this.level.rows);
+  }
+
+  loadLevel(index) {
+    this.applyLevelData(getCombinedLevels()[index].level);
     playLevelMusic(index);
   }
 
+  // Used by the level editor's Test Play button: runs an ad-hoc level (not
+  // in the combined list yet) through the exact same engine as a shipped
+  // level. onExit(success) fires once, whether the player reaches the exit
+  // or fails/times out, so the editor can decide what to show next.
+  startCustomLevel(levelData, onExit) {
+    this.testMode = true;
+    this.customPlaytest = true;
+    this.onCustomPlaytestExit = onExit;
+    this.currentLevelIndex = -1;
+    this.applyLevelData(levelData);
+    // No music during editor playtesting -- keeps rapid iterate/retest quiet.
+    this.status = STATUS.PLAYING;
+    this.ui.showPlaying();
+    this.timer.start();
+    this.canvas.focus();
+    this.startLoop();
+  }
+
   continueToNextLevel() {
-    if (this.currentLevelIndex >= LEVELS.length - 1) {
+    if (this.currentLevelIndex >= getCombinedLevels().length - 1) {
       this.status = STATUS.WIN;
       this.stopLoop();
       this.ui.showWin();
@@ -331,12 +364,17 @@ export class Game {
     this.stopLoop();
     stopMusic();
 
+    if (this.customPlaytest) {
+      this.finishCustomPlaytest(true);
+      return;
+    }
+
     if (this.testMode) {
       this.goToLevelSelect();
       return;
     }
 
-    if (this.currentLevelIndex >= LEVELS.length - 1) {
+    if (this.currentLevelIndex >= getCombinedLevels().length - 1) {
       this.ui.showWin();
       this.status = STATUS.WIN;
     } else {
@@ -350,12 +388,25 @@ export class Game {
     this.stopLoop();
     stopMusic();
 
+    if (this.customPlaytest) {
+      this.finishCustomPlaytest(false);
+      return;
+    }
+
     if (this.testMode) {
       this.goToLevelSelect();
       return;
     }
 
     this.ui.showFail(title, message);
+  }
+
+  finishCustomPlaytest(success) {
+    this.customPlaytest = false;
+    this.testMode = false;
+    const onExit = this.onCustomPlaytestExit;
+    this.onCustomPlaytestExit = null;
+    onExit?.(success);
   }
 
   render(time) {
