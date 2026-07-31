@@ -1,6 +1,6 @@
 import { parseLevel, drawMaze, TILE, TILE_SIZE } from './maze.js';
 import { Player, Input } from './player.js';
-import { Timer } from './timer.js';
+import { Timer, LEVEL_TIME } from './timer.js';
 import { createHazards, createCats } from './obstacles.js';
 import { playLevelMusic, stopMusic } from './music.js';
 import { getCombinedLevels } from './customLevels.js';
@@ -175,7 +175,10 @@ export class Game {
     this.hazards = createHazards(this.level.hazards);
     this.cats = createCats(this.level.cats);
     this.player = new Player(this.level.start.col, this.level.start.row);
-    this.timer.reset();
+    const timeLimit = Number.isFinite(levelData.timeLimit) && levelData.timeLimit > 0
+      ? levelData.timeLimit
+      : LEVEL_TIME;
+    this.timer.reset(timeLimit);
     this.elapsedTime = 0;
     this.doorOpening = false;
     this.doorTimer = 0;

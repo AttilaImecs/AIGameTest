@@ -6,6 +6,7 @@
 
 import { TILE, TILE_SIZE, parseLevel, drawMaze } from './maze.js';
 import { STATUS } from './game.js';
+import { LEVEL_TIME } from './timer.js';
 import {
   getCombinedLevels,
   saveCustomLevel,
@@ -49,6 +50,8 @@ export class Editor {
     this.nameInput = document.getElementById('editor-level-name');
     this.colsInput = document.getElementById('editor-cols');
     this.rowsInput = document.getElementById('editor-rows');
+    this.timerMinutesInput = document.getElementById('editor-timer-minutes');
+    this.timerSecondsInput = document.getElementById('editor-timer-seconds');
     this.newGridBtn = document.getElementById('editor-new-grid-btn');
     this.clearBtn = document.getElementById('editor-clear-btn');
     this.hintEl = document.getElementById('editor-hint');
@@ -111,6 +114,8 @@ export class Editor {
     this.backBtn.addEventListener('click', () => this.game.goToMenu());
 
     this.nameInput.addEventListener('input', () => this.onGridChanged());
+    this.timerMinutesInput.addEventListener('input', () => this.onGridChanged());
+    this.timerSecondsInput.addEventListener('input', () => this.onGridChanged());
 
     this.exportBtn.addEventListener('click', () => this.handleExport());
     this.importBtn.addEventListener('click', () => this.handleImport());
@@ -258,11 +263,21 @@ export class Editor {
 
   // ---- Verification state ----
 
+  getTimeLimitSeconds() {
+    const minutes = Math.max(0, parseInt(this.timerMinutesInput.value, 10) || 0);
+    const seconds = Math.max(0, parseInt(this.timerSecondsInput.value, 10) || 0);
+    const total = minutes * 60 + seconds;
+    // At least 5s (a level with no time at all can never be won) and cap at
+    // 59:59 so it still fits the MM:SS HUD display.
+    return Math.max(5, Math.min(3599, total || LEVEL_TIME));
+  }
+
   snapshotKey() {
     return JSON.stringify({
       grid: this.grid.map((r) => r.join('')),
       hazards: this.hazards,
       cats: this.cats,
+      timeLimit: this.getTimeLimitSeconds(),
     });
   }
 
@@ -302,6 +317,7 @@ export class Editor {
       grid: this.grid.map((row) => row.join('')),
       hazards: this.hazards.map((h) => ({ ...h })),
       cats: this.cats.map((c) => ({ ...c })),
+      timeLimit: this.getTimeLimitSeconds(),
     };
   }
 

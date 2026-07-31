@@ -84,6 +84,18 @@
           <button id="editor-clear-btn" class="btn btn-secondary btn-small">Clear</button>
         </div>
 
+        <div class="editor-row editor-row-tight">
+          <label class="editor-field editor-field-small">
+            Minutes
+            <input id="editor-timer-minutes" type="number" min="0" max="59" value="2">
+          </label>
+          <label class="editor-field editor-field-small">
+            Seconds
+            <input id="editor-timer-seconds" type="number" min="0" max="59" value="0">
+          </label>
+          <span class="editor-hint editor-timer-hint">Time limit for this level</span>
+        </div>
+
         <div class="editor-tool-palette" id="editor-tool-palette">
           <button class="tool-btn active" data-tool="wall">🧱 Wall</button>
           <button class="tool-btn" data-tool="path">⬜ Erase</button>
