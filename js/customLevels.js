@@ -43,6 +43,66 @@ export function deleteCustomLevel(id) {
   writeRaw(entries);
 }
 
+const EXPORT_TYPE = 'snail-maze-levels';
+const EXPORT_VERSION = 1;
+
+// Produces a copy-pasteable text blob of every published level (drops the
+// internal storage id -- import always mints a fresh one, same as a normal
+// publish). This is the only way levels move between browsers/devices,
+// since there's no server to sync them through.
+export function exportCustomLevels() {
+  const entries = readRaw();
+  const payload = {
+    type: EXPORT_TYPE,
+    version: EXPORT_VERSION,
+    levels: entries.map((e) => ({ level: e.level, position: e.position })),
+  };
+  return JSON.stringify(payload, null, 2);
+}
+
+function isValidLevelShape(level) {
+  return (
+    level &&
+    typeof level.name === 'string' &&
+    Array.isArray(level.grid) &&
+    level.grid.every((row) => typeof row === 'string') &&
+    Array.isArray(level.hazards) &&
+    Array.isArray(level.cats)
+  );
+}
+
+// Parses a blob produced by exportCustomLevels and appends every valid
+// entry as a freshly-published level (existing levels are untouched, never
+// overwritten). Returns a summary rather than throwing, so the editor can
+// show a clear status message either way.
+export function importCustomLevels(text) {
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch (e) {
+    return { ok: false, error: "That doesn't look like valid level data (couldn't parse it)." };
+  }
+
+  if (!parsed || parsed.type !== EXPORT_TYPE || !Array.isArray(parsed.levels)) {
+    return { ok: false, error: "That doesn't look like a snail-maze level export." };
+  }
+
+  let imported = 0;
+  let skipped = 0;
+  for (const entry of parsed.levels) {
+    const level = entry && entry.level;
+    const position = Number.isFinite(entry?.position) ? entry.position : 999;
+    if (!isValidLevelShape(level)) {
+      skipped++;
+      continue;
+    }
+    saveCustomLevel(level, position);
+    imported++;
+  }
+
+  return { ok: true, imported, skipped };
+}
+
 // Merges built-in LEVELS with published custom levels, ordered by each
 // custom level's requested position (existing levels shift down). This is
 // the single list every screen in the game should read from.

@@ -6,7 +6,14 @@
 
 import { TILE, TILE_SIZE, parseLevel, drawMaze } from './maze.js';
 import { STATUS } from './game.js';
-import { getCombinedLevels, saveCustomLevel, loadCustomLevels, deleteCustomLevel } from './customLevels.js';
+import {
+  getCombinedLevels,
+  saveCustomLevel,
+  loadCustomLevels,
+  deleteCustomLevel,
+  exportCustomLevels,
+  importCustomLevels,
+} from './customLevels.js';
 import { checkReachability } from './levelValidate.js';
 
 const DRAG_TOOLS = ['wall', 'path', 'mud', 'water', 'rock', 'gate'];
@@ -55,6 +62,10 @@ export class Editor {
     this.publishBtn = document.getElementById('editor-publish-btn');
     this.backBtn = document.getElementById('editor-back-btn');
     this.myLevelsList = document.getElementById('editor-my-levels-list');
+    this.exportBtn = document.getElementById('editor-export-btn');
+    this.importBtn = document.getElementById('editor-import-btn');
+    this.transferTextarea = document.getElementById('editor-transfer-textarea');
+    this.transferStatus = document.getElementById('editor-transfer-status');
     this.toolButtons = Array.from(document.querySelectorAll('#editor-tool-palette .tool-btn'));
 
     this.currentTool = 'wall';
@@ -100,6 +111,9 @@ export class Editor {
     this.backBtn.addEventListener('click', () => this.game.goToMenu());
 
     this.nameInput.addEventListener('input', () => this.onGridChanged());
+
+    this.exportBtn.addEventListener('click', () => this.handleExport());
+    this.importBtn.addEventListener('click', () => this.handleImport());
   }
 
   // ---- Grid lifecycle ----
@@ -352,6 +366,55 @@ export class Editor {
     this.renderMyLevels();
     this.positionInput.value = String(getCombinedLevels().length + 1);
     this.game.goToMenu();
+  }
+
+  // ---- Backup / transfer ----
+
+  showTransferStatus(msg) {
+    this.transferStatus.textContent = msg;
+    this.transferStatus.classList.remove('hidden');
+  }
+
+  async handleExport() {
+    const blob = exportCustomLevels();
+    this.transferTextarea.value = blob;
+    this.transferTextarea.classList.remove('hidden');
+    this.transferTextarea.focus();
+    this.transferTextarea.select();
+
+    const count = loadCustomLevels().length;
+    if (count === 0) {
+      this.showTransferStatus("You haven't published any levels yet -- nothing to export.");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(blob);
+      this.showTransferStatus(`Copied ${count} level${count === 1 ? '' : 's'} to your clipboard (also shown below).`);
+    } catch (e) {
+      this.showTransferStatus(`${count} level${count === 1 ? '' : 's'} ready below -- select the text and copy it manually.`);
+    }
+  }
+
+  handleImport() {
+    this.transferTextarea.classList.remove('hidden');
+    const text = this.transferTextarea.value.trim();
+    if (!text) {
+      this.showTransferStatus('Paste an exported level blob into the box first, then click Import.');
+      return;
+    }
+
+    const result = importCustomLevels(text);
+    if (!result.ok) {
+      this.showTransferStatus(result.error);
+      return;
+    }
+
+    this.renderMyLevels();
+    this.positionInput.value = String(getCombinedLevels().length + 1);
+    const parts = [`Imported ${result.imported} level${result.imported === 1 ? '' : 's'}.`];
+    if (result.skipped > 0) parts.push(`Skipped ${result.skipped} that didn't look valid.`);
+    this.showTransferStatus(parts.join(' '));
   }
 
   // ---- Lists ----

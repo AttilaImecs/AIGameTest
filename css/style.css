@@ -494,6 +494,23 @@ body {
   padding-top: 0.6rem;
 }
 
+.editor-transfer {
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding-top: 0.6rem;
+}
+
+.editor-textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  color: #e8f5e9;
+  padding: 8px;
+  font-size: 0.75rem;
+  font-family: ui-monospace, monospace;
+  resize: vertical;
+}
+
 @media (max-width: 480px) {
   .editor-panel { width: 100vw; }
 }
