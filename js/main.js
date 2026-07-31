@@ -2,6 +2,7 @@ import { Game, STATUS } from './game.js';
 import { UI } from './ui.js';
 import { LEVELS, parseLevel, COLORS } from './maze.js';
 import { Player } from './player.js';
+import { Editor } from './editor.js';
 
 // Register service worker for offline PWA install. Failures are non-fatal
 // (e.g. http://localhost in some browsers blocks SW).
@@ -14,6 +15,7 @@ if ('serviceWorker' in navigator) {
 const canvas = document.getElementById('game-canvas');
 const ui = new UI();
 const game = new Game(canvas, ui);
+const editor = new Editor(canvas, game, ui);
 
 function fillPreviewBackground(ctx) {
   ctx.fillStyle = COLORS.path;
@@ -29,6 +31,7 @@ function drawMenuPreview() {
 
 ui.onPlay(() => game.start());
 ui.onTestGame(() => ui.showLevelSelect());
+ui.onEditor(() => editor.showEditorScreen());
 ui.onSelectLevel((index) => game.startTestLevel(index));
 ui.onBackToMenu(() => game.goToMenu());
 ui.onContinue(() => game.continueToNextLevel());
