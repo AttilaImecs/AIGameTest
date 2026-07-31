@@ -498,6 +498,24 @@ body {
   padding-top: 0.6rem;
 }
 
+.editor-editing-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.8rem;
+  background: rgba(102, 187, 106, 0.15);
+  border: 1px solid rgba(102, 187, 106, 0.4);
+  color: #c8e6c9;
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.editor-entity-row.editing {
+  background: rgba(102, 187, 106, 0.2);
+  outline: 1px solid rgba(102, 187, 106, 0.5);
+}
+
 .editor-transfer {
   border-top: 1px solid rgba(255, 255, 255, 0.15);
   padding-top: 0.6rem;

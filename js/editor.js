@@ -69,6 +69,9 @@ export class Editor {
     this.importBtn = document.getElementById('editor-import-btn');
     this.transferTextarea = document.getElementById('editor-transfer-textarea');
     this.transferStatus = document.getElementById('editor-transfer-status');
+    this.editingIndicator = document.getElementById('editor-editing-indicator');
+    this.editingIndicatorText = document.getElementById('editor-editing-indicator-text');
+    this.cancelEditBtn = document.getElementById('editor-cancel-edit-btn');
     this.toolButtons = Array.from(document.querySelectorAll('#editor-tool-palette .tool-btn'));
 
     this.currentTool = 'wall';
@@ -77,6 +80,7 @@ export class Editor {
     this.hazardDraft = null;
     this.verified = false;
     this.verifiedSnapshot = null;
+    this.editingId = null;
 
     this.newGrid(
       parseInt(this.colsInput.value, 10) || 16,
@@ -119,6 +123,13 @@ export class Editor {
 
     this.exportBtn.addEventListener('click', () => this.handleExport());
     this.importBtn.addEventListener('click', () => this.handleImport());
+
+    this.cancelEditBtn.addEventListener('click', () => {
+      this.nameInput.value = '';
+      this.timerMinutesInput.value = String(Math.floor(LEVEL_TIME / 60));
+      this.timerSecondsInput.value = String(LEVEL_TIME % 60);
+      this.newGrid(16, 10);
+    });
   }
 
   // ---- Grid lifecycle ----
@@ -147,12 +158,15 @@ export class Editor {
     this.hazardDraft = null;
     this.verified = false;
     this.verifiedSnapshot = null;
+    this.editingId = null;
+    this.updateEditingIndicator();
 
     if (this.game.status === STATUS.EDITOR) {
       this.game.setCanvasSize(this.cols, this.rows);
     }
     this.clearError();
     this.renderEntityLists();
+    this.renderMyLevels();
     this.updateWarning();
     this.onGridChanged();
   }
@@ -166,6 +180,56 @@ export class Editor {
       for (let c = 0; c < this.cols; c++) {
         if (this.grid[r][c] === char) this.grid[r][c] = TILE.PATH;
       }
+    }
+  }
+
+  // Loads a saved level's data into the working grid so it can be repainted
+  // and re-tested, without touching editingId (callers decide whether this
+  // is "edit an existing published level" or something else).
+  loadLevelIntoEditor(level) {
+    this.rows = level.grid.length;
+    this.cols = level.grid[0].length;
+    this.grid = level.grid.map((row) => row.split(''));
+    this.hazards = (level.hazards || []).map((h) => ({ ...h }));
+    this.cats = (level.cats || []).map((c) => ({ ...c }));
+    this.hazardDraft = null;
+    this.verified = false;
+    this.verifiedSnapshot = null;
+
+    this.nameInput.value = level.name || '';
+    this.colsInput.value = String(this.cols);
+    this.rowsInput.value = String(this.rows);
+    const timeLimit = Number.isFinite(level.timeLimit) && level.timeLimit > 0 ? level.timeLimit : LEVEL_TIME;
+    this.timerMinutesInput.value = String(Math.floor(timeLimit / 60));
+    this.timerSecondsInput.value = String(timeLimit % 60);
+
+    if (this.game.status === STATUS.EDITOR) {
+      this.game.setCanvasSize(this.cols, this.rows);
+    }
+    this.clearError();
+    this.renderEntityLists();
+    this.updateWarning();
+    this.onGridChanged();
+  }
+
+  // ---- Edit an already-published level ----
+
+  handleEditLevel(entry) {
+    this.loadLevelIntoEditor(entry.level);
+    this.editingId = entry.id;
+    this.positionInput.value = String(entry.position);
+    this.editingIndicatorText.textContent = `Editing "${entry.level.name}" — Test Play then Publish to save your changes.`;
+    this.updateEditingIndicator();
+    this.renderMyLevels();
+  }
+
+  updateEditingIndicator() {
+    if (this.editingId) {
+      this.editingIndicator.classList.remove('hidden');
+      this.publishBtn.textContent = 'Update';
+    } else {
+      this.editingIndicator.classList.add('hidden');
+      this.publishBtn.textContent = 'Publish';
     }
   }
 
@@ -375,10 +439,15 @@ export class Editor {
     if (!this.verified) return;
     const levelData = this.buildLevelData();
     const combined = getCombinedLevels();
+    // Publishing an update to an existing level shouldn't count its own
+    // current slot when clamping the requested position.
+    const maxPosition = this.editingId ? combined.length : combined.length + 1;
     let position = parseInt(this.positionInput.value, 10);
-    if (!Number.isFinite(position) || position < 1) position = combined.length + 1;
-    position = Math.min(position, combined.length + 1);
-    saveCustomLevel(levelData, position);
+    if (!Number.isFinite(position) || position < 1) position = maxPosition;
+    position = Math.min(position, maxPosition);
+    saveCustomLevel(levelData, position, this.editingId);
+    this.editingId = null;
+    this.updateEditingIndicator();
     this.renderMyLevels();
     this.positionInput.value = String(getCombinedLevels().length + 1);
     this.game.goToMenu();
@@ -509,18 +578,27 @@ export class Editor {
     for (const entry of entries) {
       const row = document.createElement('div');
       row.className = 'editor-entity-row';
+      if (entry.id === this.editingId) row.classList.add('editing');
 
       const label = document.createElement('span');
       label.textContent = `#${entry.position} ${entry.level.name}`;
+
+      const editBtn = document.createElement('button');
+      editBtn.textContent = entry.id === this.editingId ? 'Editing…' : 'Edit';
+      editBtn.addEventListener('click', () => this.handleEditLevel(entry));
 
       const delBtn = document.createElement('button');
       delBtn.textContent = 'Delete';
       delBtn.addEventListener('click', () => {
         deleteCustomLevel(entry.id);
+        if (entry.id === this.editingId) {
+          this.editingId = null;
+          this.updateEditingIndicator();
+        }
         this.renderMyLevels();
       });
 
-      row.append(label, delBtn);
+      row.append(label, editBtn, delBtn);
       this.myLevelsList.appendChild(row);
     }
   }

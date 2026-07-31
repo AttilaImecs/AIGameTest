@@ -29,13 +29,22 @@ export function loadCustomLevels() {
   return readRaw();
 }
 
-// position is 1-based, matching how levels are displayed ("Level N").
-export function saveCustomLevel(level, position) {
+// position is 1-based, matching how levels are displayed ("Level N"). If id
+// matches an existing entry, that entry is updated in place (same id, new
+// level/position) instead of creating a duplicate -- this is what lets a
+// published level be re-opened in the editor and re-published as an update.
+export function saveCustomLevel(level, position, id = null) {
   const entries = readRaw();
-  const id = `custom-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  entries.push({ id, level, position });
+  const existingIndex = id ? entries.findIndex((e) => e.id === id) : -1;
+  if (existingIndex >= 0) {
+    entries[existingIndex] = { id, level, position };
+    writeRaw(entries);
+    return id;
+  }
+  const newId = `custom-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  entries.push({ id: newId, level, position });
   writeRaw(entries);
-  return id;
+  return newId;
 }
 
 export function deleteCustomLevel(id) {
