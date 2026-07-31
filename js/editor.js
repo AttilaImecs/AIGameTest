@@ -39,6 +39,7 @@ const TOOL_HINTS = {
   exit: 'Click to set the exit tile (only one allowed).',
   cat: 'Click to add a cat. Click an existing cat to remove it.',
   hazard: 'Click a start tile, then an end tile on the same row/column to draw a patrol line.',
+  zombie: 'Click to add a zombie. Click an existing zombie to remove it.',
 };
 
 export class Editor {
@@ -57,6 +58,7 @@ export class Editor {
     this.hintEl = document.getElementById('editor-hint');
     this.hazardListEl = document.getElementById('editor-hazard-list');
     this.catListEl = document.getElementById('editor-cat-list');
+    this.zombieListEl = document.getElementById('editor-zombie-list');
     this.warningEl = document.getElementById('editor-warning');
     this.errorEl = document.getElementById('editor-error');
     this.testPlayBtn = document.getElementById('editor-test-play-btn');
@@ -155,6 +157,7 @@ export class Editor {
     this.grid[this.rows - 2][this.cols - 2] = TILE.EXIT;
     this.hazards = [];
     this.cats = [];
+    this.zombies = [];
     this.hazardDraft = null;
     this.verified = false;
     this.verifiedSnapshot = null;
@@ -192,6 +195,7 @@ export class Editor {
     this.grid = level.grid.map((row) => row.split(''));
     this.hazards = (level.hazards || []).map((h) => ({ ...h }));
     this.cats = (level.cats || []).map((c) => ({ ...c }));
+    this.zombies = (level.zombies || []).map((z) => ({ ...z }));
     this.hazardDraft = null;
     this.verified = false;
     this.verifiedSnapshot = null;
@@ -298,6 +302,11 @@ export class Editor {
       if (idx >= 0) this.cats.splice(idx, 1);
       else this.cats.push({ col, row, speed: 105 });
       this.renderEntityLists();
+    } else if (tool === 'zombie') {
+      const idx = this.zombies.findIndex((z) => z.col === col && z.row === row);
+      if (idx >= 0) this.zombies.splice(idx, 1);
+      else this.zombies.push({ col, row, speed: 35 });
+      this.renderEntityLists();
     } else if (tool === 'hazard') {
       this.handleHazardClick(col, row);
       this.renderEntityLists();
@@ -341,6 +350,7 @@ export class Editor {
       grid: this.grid.map((r) => r.join('')),
       hazards: this.hazards,
       cats: this.cats,
+      zombies: this.zombies,
       timeLimit: this.getTimeLimitSeconds(),
     });
   }
@@ -381,6 +391,7 @@ export class Editor {
       grid: this.grid.map((row) => row.join('')),
       hazards: this.hazards.map((h) => ({ ...h })),
       cats: this.cats.map((c) => ({ ...c })),
+      zombies: this.zombies.map((z) => ({ ...z })),
       timeLimit: this.getTimeLimitSeconds(),
     };
   }
@@ -566,6 +577,29 @@ export class Editor {
     if (this.cats.length === 0) {
       this.catListEl.innerHTML = '<p class="editor-hint">None placed.</p>';
     }
+
+    this.zombieListEl.innerHTML = '';
+    this.zombies.forEach((zombie, i) => {
+      const row = document.createElement('div');
+      row.className = 'editor-entity-row';
+
+      const label = document.createElement('span');
+      label.textContent = `(${zombie.col},${zombie.row})`;
+
+      const delBtn = document.createElement('button');
+      delBtn.textContent = '×';
+      delBtn.addEventListener('click', () => {
+        this.zombies.splice(i, 1);
+        this.onGridChanged();
+        this.renderEntityLists();
+      });
+
+      row.append(label, delBtn);
+      this.zombieListEl.appendChild(row);
+    });
+    if (this.zombies.length === 0) {
+      this.zombieListEl.innerHTML = '<p class="editor-hint">None placed.</p>';
+    }
   }
 
   renderMyLevels() {
@@ -684,6 +718,18 @@ export class Editor {
       const y = cat.row * TILE_SIZE + TILE_SIZE / 2;
       ctx.beginPath();
       ctx.arc(x, y, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = '#4c8a3f';
+    ctx.strokeStyle = '#0b0b0b';
+    ctx.lineWidth = 1.5;
+    for (const zombie of this.zombies) {
+      const x = zombie.col * TILE_SIZE + TILE_SIZE / 2;
+      const y = zombie.row * TILE_SIZE + TILE_SIZE / 2;
+      ctx.beginPath();
+      ctx.roundRect(x - 8, y - 8, 16, 16, 3);
       ctx.fill();
       ctx.stroke();
     }

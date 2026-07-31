@@ -1,7 +1,7 @@
 import { parseLevel, drawMaze, TILE, TILE_SIZE } from './maze.js';
 import { Player, Input } from './player.js';
 import { Timer, LEVEL_TIME } from './timer.js';
-import { createHazards, createCats } from './obstacles.js';
+import { createHazards, createCats, createZombies } from './obstacles.js';
 import { playLevelMusic, stopMusic } from './music.js';
 import { getCombinedLevels } from './customLevels.js';
 
@@ -50,6 +50,7 @@ export class Game {
     this.rocks = [];
     this.hazards = [];
     this.cats = [];
+    this.zombies = [];
     this.player = null;
     this.timer = new Timer();
     this.elapsedTime = 0;
@@ -174,6 +175,7 @@ export class Game {
     }));
     this.hazards = createHazards(this.level.hazards);
     this.cats = createCats(this.level.cats);
+    this.zombies = createZombies(this.level.zombies);
     this.player = new Player(this.level.start.col, this.level.start.row);
     const timeLimit = Number.isFinite(levelData.timeLimit) && levelData.timeLimit > 0
       ? levelData.timeLimit
@@ -326,6 +328,14 @@ export class Game {
       cat.update(dt, this.level, this.rocks, this.player);
     }
 
+    for (const zombie of this.zombies) {
+      zombie.update(dt, this.level, this.rocks, this.player);
+      if (zombie.collidesWith(this.player.x, this.player.y, this.player.radius)) {
+        this.triggerFail('Braaains!', 'A zombie caught the snail.');
+        return;
+      }
+    }
+
     if (this.player.isOnTile(this.level, TILE.WATER)) {
       this.splashing = true;
       this.splashTimer = 0;
@@ -424,6 +434,10 @@ export class Game {
 
       for (const cat of this.cats) {
         cat.draw(this.ctx, time);
+      }
+
+      for (const zombie of this.zombies) {
+        zombie.draw(this.ctx, time);
       }
 
       if (this.player) {

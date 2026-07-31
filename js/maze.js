@@ -228,6 +228,7 @@ export function parseLevel(levelData) {
     hasKeyOnMap,
     hazards: levelData.hazards.map((h) => ({ ...h })),
     cats: (levelData.cats || []).map((c) => ({ ...c })),
+    zombies: (levelData.zombies || []).map((z) => ({ ...z })),
     cols: grid[0].length,
     rows: grid.length,
   };
