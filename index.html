@@ -35,6 +35,7 @@
         <span id="timer-display">3:00</span>
       </div>
       <div class="hud-right">
+        <span id="creeper-counter" class="creeper-counter hidden" title="Creeper explosions">💥 0/3</span>
         <span id="key-icon" class="key-icon dim" title="Key">🔑</span>
       </div>
     </div>
@@ -113,6 +114,7 @@
           <button class="tool-btn" data-tool="cat">🐱 Cat</button>
           <button class="tool-btn" data-tool="hazard">🔴 Hazard</button>
           <button class="tool-btn" data-tool="zombie">🧟 Zombie</button>
+          <button class="tool-btn" data-tool="creeper">🧨 Creeper</button>
         </div>
         <p class="editor-hint" id="editor-hint">Click or drag on the grid to place walls.</p>
 
@@ -128,6 +130,10 @@
           <div class="editor-list-block">
             <h3>Zombies</h3>
             <div id="editor-zombie-list" class="editor-entity-list"></div>
+          </div>
+          <div class="editor-list-block">
+            <h3>Creepers</h3>
+            <div id="editor-creeper-list" class="editor-entity-list"></div>
           </div>
         </div>
 

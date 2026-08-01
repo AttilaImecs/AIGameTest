@@ -120,6 +120,19 @@ body {
   animation: keyGlow 1s ease-in-out infinite alternate;
 }
 
+.creeper-counter {
+  font-size: 1rem;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 2px 8px;
+}
+
+.creeper-counter.danger {
+  color: #ff5252;
+  animation: pulse 0.8s ease-in-out infinite;
+}
+
 @keyframes keyGlow {
   from { text-shadow: 0 0 4px #ffd54f; }
   to { text-shadow: 0 0 12px #ffd54f; }

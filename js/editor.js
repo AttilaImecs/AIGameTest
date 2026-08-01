@@ -40,6 +40,7 @@ const TOOL_HINTS = {
   cat: 'Click to add a cat. Click an existing cat to remove it.',
   hazard: 'Click a start tile, then an end tile on the same row/column to draw a patrol line.',
   zombie: 'Click to add a zombie. Click an existing zombie to remove it.',
+  creeper: 'Click to add a creeper. Click an existing creeper to remove it.',
 };
 
 export class Editor {
@@ -59,6 +60,7 @@ export class Editor {
     this.hazardListEl = document.getElementById('editor-hazard-list');
     this.catListEl = document.getElementById('editor-cat-list');
     this.zombieListEl = document.getElementById('editor-zombie-list');
+    this.creeperListEl = document.getElementById('editor-creeper-list');
     this.warningEl = document.getElementById('editor-warning');
     this.errorEl = document.getElementById('editor-error');
     this.testPlayBtn = document.getElementById('editor-test-play-btn');
@@ -158,6 +160,7 @@ export class Editor {
     this.hazards = [];
     this.cats = [];
     this.zombies = [];
+    this.creepers = [];
     this.hazardDraft = null;
     this.verified = false;
     this.verifiedSnapshot = null;
@@ -196,6 +199,7 @@ export class Editor {
     this.hazards = (level.hazards || []).map((h) => ({ ...h }));
     this.cats = (level.cats || []).map((c) => ({ ...c }));
     this.zombies = (level.zombies || []).map((z) => ({ ...z }));
+    this.creepers = (level.creepers || []).map((c) => ({ ...c }));
     this.hazardDraft = null;
     this.verified = false;
     this.verifiedSnapshot = null;
@@ -307,6 +311,11 @@ export class Editor {
       if (idx >= 0) this.zombies.splice(idx, 1);
       else this.zombies.push({ col, row, speed: 35 });
       this.renderEntityLists();
+    } else if (tool === 'creeper') {
+      const idx = this.creepers.findIndex((c) => c.col === col && c.row === row);
+      if (idx >= 0) this.creepers.splice(idx, 1);
+      else this.creepers.push({ col, row, speed: 44.1 });
+      this.renderEntityLists();
     } else if (tool === 'hazard') {
       this.handleHazardClick(col, row);
       this.renderEntityLists();
@@ -351,6 +360,7 @@ export class Editor {
       hazards: this.hazards,
       cats: this.cats,
       zombies: this.zombies,
+      creepers: this.creepers,
       timeLimit: this.getTimeLimitSeconds(),
     });
   }
@@ -392,6 +402,7 @@ export class Editor {
       hazards: this.hazards.map((h) => ({ ...h })),
       cats: this.cats.map((c) => ({ ...c })),
       zombies: this.zombies.map((z) => ({ ...z })),
+      creepers: this.creepers.map((c) => ({ ...c })),
       timeLimit: this.getTimeLimitSeconds(),
     };
   }
@@ -600,6 +611,29 @@ export class Editor {
     if (this.zombies.length === 0) {
       this.zombieListEl.innerHTML = '<p class="editor-hint">None placed.</p>';
     }
+
+    this.creeperListEl.innerHTML = '';
+    this.creepers.forEach((creeper, i) => {
+      const row = document.createElement('div');
+      row.className = 'editor-entity-row';
+
+      const label = document.createElement('span');
+      label.textContent = `(${creeper.col},${creeper.row})`;
+
+      const delBtn = document.createElement('button');
+      delBtn.textContent = '×';
+      delBtn.addEventListener('click', () => {
+        this.creepers.splice(i, 1);
+        this.onGridChanged();
+        this.renderEntityLists();
+      });
+
+      row.append(label, delBtn);
+      this.creeperListEl.appendChild(row);
+    });
+    if (this.creepers.length === 0) {
+      this.creeperListEl.innerHTML = '<p class="editor-hint">None placed.</p>';
+    }
   }
 
   renderMyLevels() {
@@ -730,6 +764,18 @@ export class Editor {
       const y = zombie.row * TILE_SIZE + TILE_SIZE / 2;
       ctx.beginPath();
       ctx.roundRect(x - 8, y - 8, 16, 16, 3);
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = '#5fae44';
+    ctx.strokeStyle = '#2f6621';
+    ctx.lineWidth = 1.5;
+    for (const creeper of this.creepers) {
+      const x = creeper.col * TILE_SIZE + TILE_SIZE / 2;
+      const y = creeper.row * TILE_SIZE + TILE_SIZE / 2;
+      ctx.beginPath();
+      ctx.roundRect(x - 6, y - 9, 12, 18, 2);
       ctx.fill();
       ctx.stroke();
     }

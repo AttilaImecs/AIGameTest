@@ -7,6 +7,7 @@ export class UI {
     this.levelName = document.getElementById('level-name');
     this.timerDisplay = document.getElementById('timer-display');
     this.keyIcon = document.getElementById('key-icon');
+    this.creeperCounter = document.getElementById('creeper-counter');
 
     this.screenMenu = document.getElementById('screen-menu');
     this.screenLevelSelect = document.getElementById('screen-level-select');
@@ -142,7 +143,7 @@ export class UI {
     this.screenWin.classList.remove('hidden');
   }
 
-  updateHUD(levelIndex, levelName, timer, hasKey, showKey) {
+  updateHUD(levelIndex, levelName, timer, hasKey, showKey, creeperHits, showCreeperCounter, creeperLethalHits) {
     this.levelDisplay.textContent = `Level ${levelIndex + 1} / ${getCombinedLevels().length}`;
     this.levelName.textContent = levelName;
     this.timerDisplay.textContent = timer.format();
@@ -159,6 +160,14 @@ export class UI {
       this.keyIcon.classList.toggle('dim', !hasKey);
     } else {
       this.keyIcon.classList.add('hidden');
+    }
+
+    if (showCreeperCounter) {
+      this.creeperCounter.classList.remove('hidden');
+      this.creeperCounter.textContent = `💥 ${creeperHits}/${creeperLethalHits}`;
+      this.creeperCounter.classList.toggle('danger', creeperHits >= creeperLethalHits - 1);
+    } else {
+      this.creeperCounter.classList.add('hidden');
     }
   }
 

@@ -229,6 +229,7 @@ export function parseLevel(levelData) {
     hazards: levelData.hazards.map((h) => ({ ...h })),
     cats: (levelData.cats || []).map((c) => ({ ...c })),
     zombies: (levelData.zombies || []).map((z) => ({ ...z })),
+    creepers: (levelData.creepers || []).map((c) => ({ ...c })),
     cols: grid[0].length,
     rows: grid.length,
   };

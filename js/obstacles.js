@@ -468,3 +468,100 @@ export class Zombie {
 export function createZombies(zombieConfigs) {
   return (zombieConfigs || []).map((config) => new Zombie(config));
 }
+
+// 42% of a cat's default chase speed (105), per design.
+const CREEPER_DEFAULT_SPEED = 44.1;
+
+// Chases like a Zombie, but doesn't fail the level by itself: touching the
+// player just removes it (it "explodes") and hands control back to Game,
+// which tracks how many have exploded into the snail and decides whether
+// that's fatal. collidesWith has the same signature as Zombie/MovingHazard
+// for a consistent call-site pattern, even though the response differs.
+export class Creeper {
+  constructor(config) {
+    this.x = config.col * TILE_SIZE + TILE_SIZE / 2;
+    this.y = config.row * TILE_SIZE + TILE_SIZE / 2;
+    this.speed = config.speed || CREEPER_DEFAULT_SPEED;
+    this.radius = TILE_SIZE * 0.35;
+    this.repathTimer = 0;
+    this.distanceField = null;
+    this.facing = { x: -1, y: 0 };
+    this.walkCycle = 0;
+  }
+
+  update(dt, level, rocks, player) {
+    this.repathTimer -= dt;
+    if (this.repathTimer <= 0 || !this.distanceField) {
+      this.distanceField = computeDistanceField(level, rocks, player);
+      this.repathTimer = CAT_REPATH_INTERVAL;
+    }
+    this.walkCycle += dt * 4;
+    stepToward(this, dt, level);
+  }
+
+  collidesWith(px, py, pr) {
+    const dx = px - this.x, dy = py - this.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    return dist < this.radius + pr;
+  }
+
+  draw(ctx, time) {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    if (this.facing.x < 0) ctx.scale(-1, 1);
+
+    const sway = Math.sin(this.walkCycle) * 1.5;
+
+    const BASE = '#5fae44';
+    const DARK = '#3f7d2c';
+    const PATCH = '#2f6621';
+    const FEET = '#39592f';
+
+    // stubby feet, alternating in a slow shuffle
+    ctx.fillStyle = FEET;
+    ctx.fillRect(-5, 9 + sway, 4, 4);
+    ctx.fillRect(1, 9 - sway, 4, 4);
+
+    // body and head fused into one tall column -- no neck, no arms
+    ctx.fillStyle = BASE;
+    ctx.beginPath();
+    ctx.roundRect(-6, -18, 12, 27, 2);
+    ctx.fill();
+    ctx.strokeStyle = DARK;
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    // blocky camo patches, fixed positions so the pattern reads as texture
+    // rather than flickering noise frame to frame
+    ctx.fillStyle = PATCH;
+    ctx.fillRect(-6, -18, 4, 4);
+    ctx.fillRect(2, -14, 4, 3);
+    ctx.fillRect(-5, -4, 3, 4);
+    ctx.fillRect(1, 2, 4, 3);
+    ctx.fillRect(-6, 6, 3, 3);
+
+    // hollow square eyes
+    ctx.fillStyle = '#0b0b0b';
+    ctx.fillRect(-4, -13, 2.5, 3);
+    ctx.fillRect(1.5, -13, 2.5, 3);
+
+    // the iconic flared/hourglass frown
+    ctx.fillRect(-1.5, -9, 3, 5);
+    ctx.fillRect(-3.5, -6, 2.5, 2.5);
+    ctx.fillRect(1, -6, 2.5, 2.5);
+
+    ctx.restore();
+
+    // faster, more urgent pulse than a Zombie's -- it's a fuse, not a shuffle
+    const pulse = 0.25 + Math.sin(time * 5) * 0.15;
+    ctx.strokeStyle = `rgba(140, 200, 60, ${pulse})`;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius + 5, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+}
+
+export function createCreepers(creeperConfigs) {
+  return (creeperConfigs || []).map((config) => new Creeper(config));
+}
