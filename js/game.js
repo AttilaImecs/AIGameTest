@@ -20,6 +20,9 @@ const SPLASH_DURATION = 0.35;
 const ROCK_SLIDE_SPEED = 220;
 const CREEPER_BLAST_DURATION = 0.45;
 const CREEPER_LETHAL_HITS = 3;
+const SWORD_DURATION = 20;
+const SWORD_SLASH_RANGE = 10;
+const SLASH_DURATION = 0.3;
 
 function createSplashParticles(x, y) {
   const particles = [];
@@ -56,6 +59,8 @@ export class Game {
     this.creepers = [];
     this.creeperHits = 0;
     this.explosionParticles = [];
+    this.swordTimeRemaining = 0;
+    this.slashParticles = [];
     this.player = null;
     this.timer = new Timer();
     this.elapsedTime = 0;
@@ -184,6 +189,8 @@ export class Game {
     this.creepers = createCreepers(this.level.creepers);
     this.creeperHits = 0;
     this.explosionParticles = [];
+    this.swordTimeRemaining = 0;
+    this.slashParticles = [];
     this.player = new Player(this.level.start.col, this.level.start.row);
     const timeLimit = Number.isFinite(levelData.timeLimit) && levelData.timeLimit > 0
       ? levelData.timeLimit
@@ -286,6 +293,18 @@ export class Game {
     }
     this.explosionParticles = this.explosionParticles.filter((p) => p.age < CREEPER_BLAST_DURATION);
 
+    for (const p of this.slashParticles) {
+      p.age += dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vy += 120 * dt;
+    }
+    this.slashParticles = this.slashParticles.filter((p) => p.age < SLASH_DURATION);
+
+    if (this.swordTimeRemaining > 0) {
+      this.swordTimeRemaining = Math.max(0, this.swordTimeRemaining - dt);
+    }
+
     if (this.doorOpening) {
       this.doorTimer += dt;
       this.doorOpenProgress = Math.min(1, this.doorTimer / DOOR_OPEN_DURATION);
@@ -347,9 +366,20 @@ export class Game {
       cat.update(dt, this.level, this.rocks, this.player);
     }
 
-    for (const zombie of this.zombies) {
+    if (this.player.collectSword(this.level)) {
+      this.swordTimeRemaining = SWORD_DURATION;
+    }
+    const swordActive = this.swordTimeRemaining > 0;
+
+    for (let i = this.zombies.length - 1; i >= 0; i--) {
+      const zombie = this.zombies[i];
       zombie.update(dt, this.level, this.rocks, this.player);
-      if (zombie.collidesWith(this.player.x, this.player.y, this.player.radius)) {
+      const dist = Math.hypot(this.player.x - zombie.x, this.player.y - zombie.y);
+      const inSlashRange = dist < this.player.radius + zombie.radius + SWORD_SLASH_RANGE;
+      if (swordActive && inSlashRange) {
+        this.slashParticles.push(...createSplashParticles(zombie.x, zombie.y));
+        this.zombies.splice(i, 1);
+      } else if (zombie.collidesWith(this.player.x, this.player.y, this.player.radius)) {
         this.triggerFail('Braaains!', 'A zombie caught the snail.');
         return;
       }
@@ -358,7 +388,12 @@ export class Game {
     for (let i = this.creepers.length - 1; i >= 0; i--) {
       const creeper = this.creepers[i];
       creeper.update(dt, this.level, this.rocks, this.player);
-      if (creeper.collidesWith(this.player.x, this.player.y, this.player.radius)) {
+      const dist = Math.hypot(this.player.x - creeper.x, this.player.y - creeper.y);
+      const inSlashRange = dist < this.player.radius + creeper.radius + SWORD_SLASH_RANGE;
+      if (swordActive && inSlashRange) {
+        this.slashParticles.push(...createSplashParticles(creeper.x, creeper.y));
+        this.creepers.splice(i, 1);
+      } else if (creeper.collidesWith(this.player.x, this.player.y, this.player.radius)) {
         this.explosionParticles.push(...createSplashParticles(creeper.x, creeper.y));
         this.creepers.splice(i, 1);
         this.creeperHits++;
@@ -404,6 +439,8 @@ export class Game {
       this.creeperHits,
       this.level.creepers.length > 0,
       CREEPER_LETHAL_HITS,
+      this.swordTimeRemaining,
+      this.level.hasSwordOnMap,
     );
   }
 
@@ -482,6 +519,17 @@ export class Game {
 
       if (this.player) {
         this.player.draw(this.ctx, time);
+
+        if (this.swordTimeRemaining > 0) {
+          const pulse = 0.4 + Math.sin(time * 6) * 0.2;
+          this.ctx.save();
+          this.ctx.strokeStyle = `rgba(77, 208, 196, ${pulse})`;
+          this.ctx.lineWidth = 2.5;
+          this.ctx.beginPath();
+          this.ctx.arc(this.player.x, this.player.y, this.player.radius + 6, 0, Math.PI * 2);
+          this.ctx.stroke();
+          this.ctx.restore();
+        }
       }
 
       for (const p of this.splashParticles) {
@@ -506,6 +554,19 @@ export class Game {
         this.ctx.fillStyle = '#ff8f3d';
         this.ctx.beginPath();
         this.ctx.arc(p.x, p.y, 4 * (1 - t * 0.5), 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.restore();
+      }
+
+      for (const p of this.slashParticles) {
+        const t = p.age / SLASH_DURATION;
+        const alpha = Math.max(0, 1 - t);
+        if (alpha <= 0) continue;
+        this.ctx.save();
+        this.ctx.globalAlpha = alpha;
+        this.ctx.fillStyle = '#7dfdfe';
+        this.ctx.beginPath();
+        this.ctx.arc(p.x, p.y, 3.5 * (1 - t * 0.5), 0, Math.PI * 2);
         this.ctx.fill();
         this.ctx.restore();
       }

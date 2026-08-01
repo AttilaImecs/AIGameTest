@@ -133,6 +133,27 @@ body {
   animation: pulse 0.8s ease-in-out infinite;
 }
 
+.sword-icon {
+  font-size: 1rem;
+  font-weight: 600;
+  opacity: 0.4;
+  filter: grayscale(1);
+  transition: opacity 0.3s, filter 0.3s;
+}
+
+.sword-icon.active {
+  opacity: 1;
+  filter: none;
+  color: #4dd0c4;
+  text-shadow: 0 0 6px rgba(77, 208, 196, 0.8);
+  animation: swordGlow 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes swordGlow {
+  from { text-shadow: 0 0 4px rgba(77, 208, 196, 0.6); }
+  to { text-shadow: 0 0 10px rgba(77, 208, 196, 1); }
+}
+
 @keyframes keyGlow {
   from { text-shadow: 0 0 4px #ffd54f; }
   to { text-shadow: 0 0 12px #ffd54f; }

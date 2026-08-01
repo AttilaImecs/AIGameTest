@@ -24,6 +24,7 @@ const PAINT_CHARS = {
   water: TILE.WATER,
   rock: TILE.ROCK,
   gate: TILE.GATE,
+  sword: TILE.SWORD,
 };
 const TARGET_HAZARD_PX_PER_SEC = 90;
 
@@ -35,6 +36,7 @@ const TOOL_HINTS = {
   rock: 'Click or drag to place pushable rocks.',
   key: 'Click to place the key (only one allowed).',
   gate: 'Click to place gates (the key opens all of them).',
+  sword: 'Click to place a Diamond Sword (grants 20s of immunity that slashes nearby Zombies/Creepers). Switch to Erase to remove one.',
   start: "Click to set the snail's starting tile (only one allowed).",
   exit: 'Click to set the exit tile (only one allowed).',
   cat: 'Click to add a cat. Click an existing cat to remove it.',

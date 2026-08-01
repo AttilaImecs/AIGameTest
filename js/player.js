@@ -167,6 +167,15 @@ export class Player {
     return false;
   }
 
+  collectSword(level) {
+    const { col, row } = this.getTileCoords();
+    if (getTile(level, col, row) === TILE.SWORD) {
+      level.grid[row][col] = TILE.PATH;
+      return true;
+    }
+    return false;
+  }
+
   draw(ctx, time) {
     for (let i = 0; i < this.slimeTrail.length; i++) {
       const t = this.slimeTrail[i];

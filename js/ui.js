@@ -8,6 +8,7 @@ export class UI {
     this.timerDisplay = document.getElementById('timer-display');
     this.keyIcon = document.getElementById('key-icon');
     this.creeperCounter = document.getElementById('creeper-counter');
+    this.swordIcon = document.getElementById('sword-icon');
 
     this.screenMenu = document.getElementById('screen-menu');
     this.screenLevelSelect = document.getElementById('screen-level-select');
@@ -143,7 +144,7 @@ export class UI {
     this.screenWin.classList.remove('hidden');
   }
 
-  updateHUD(levelIndex, levelName, timer, hasKey, showKey, creeperHits, showCreeperCounter, creeperLethalHits) {
+  updateHUD(levelIndex, levelName, timer, hasKey, showKey, creeperHits, showCreeperCounter, creeperLethalHits, swordTimeRemaining, hasSwordOnMap) {
     this.levelDisplay.textContent = `Level ${levelIndex + 1} / ${getCombinedLevels().length}`;
     this.levelName.textContent = levelName;
     this.timerDisplay.textContent = timer.format();
@@ -168,6 +169,15 @@ export class UI {
       this.creeperCounter.classList.toggle('danger', creeperHits >= creeperLethalHits - 1);
     } else {
       this.creeperCounter.classList.add('hidden');
+    }
+
+    if (hasSwordOnMap) {
+      this.swordIcon.classList.remove('hidden');
+      const active = swordTimeRemaining > 0;
+      this.swordIcon.classList.toggle('active', active);
+      this.swordIcon.textContent = active ? `🗡️ ${Math.ceil(swordTimeRemaining)}s` : '🗡️';
+    } else {
+      this.swordIcon.classList.add('hidden');
     }
   }
 

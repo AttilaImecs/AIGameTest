@@ -10,6 +10,7 @@ export const TILE = {
   KEY: 'K',
   GATE: 'G',
   ROCK: 'R',
+  SWORD: 'D',
 };
 
 export const COLORS = {
@@ -201,6 +202,7 @@ export function parseLevel(levelData) {
   let exit = { col: 0, row: 0 };
   const rocks = [];
   let hasKeyOnMap = false;
+  let hasSwordOnMap = false;
 
   for (let row = 0; row < grid.length; row++) {
     for (let col = 0; col < grid[row].length; col++) {
@@ -215,6 +217,8 @@ export function parseLevel(levelData) {
         grid[row][col] = TILE.PATH;
       } else if (tile === TILE.KEY) {
         hasKeyOnMap = true;
+      } else if (tile === TILE.SWORD) {
+        hasSwordOnMap = true;
       }
     }
   }
@@ -226,6 +230,7 @@ export function parseLevel(levelData) {
     exit,
     rocks,
     hasKeyOnMap,
+    hasSwordOnMap,
     hazards: levelData.hazards.map((h) => ({ ...h })),
     cats: (levelData.cats || []).map((c) => ({ ...c })),
     zombies: (levelData.zombies || []).map((z) => ({ ...z })),
@@ -315,6 +320,57 @@ export function drawMaze(ctx, level, rocks, time, doorProgress = 0, gateProgress
           ctx.fill();
           ctx.fillRect(x + TILE_SIZE / 2 + 4, y + TILE_SIZE / 2 - 2, 8, 3);
           ctx.fillRect(x + TILE_SIZE / 2 + 10, y + TILE_SIZE / 2 - 2, 3, 6);
+        } else if (tile === TILE.SWORD) {
+          const cx = x + TILE_SIZE / 2;
+          const cy = y + TILE_SIZE / 2;
+          const bob = Math.sin(time * 3) * 1.5;
+          ctx.save();
+          ctx.translate(cx, cy + bob);
+
+          // blade outline
+          ctx.fillStyle = '#0d4d40';
+          ctx.beginPath();
+          ctx.moveTo(0, -13);
+          ctx.lineTo(4, -9);
+          ctx.lineTo(4, 4);
+          ctx.lineTo(-4, 4);
+          ctx.lineTo(-4, -9);
+          ctx.closePath();
+          ctx.fill();
+
+          // diamond-blue blade fill
+          ctx.fillStyle = '#4dd0c4';
+          ctx.beginPath();
+          ctx.moveTo(0, -11);
+          ctx.lineTo(2.5, -8);
+          ctx.lineTo(2.5, 2);
+          ctx.lineTo(-2.5, 2);
+          ctx.lineTo(-2.5, -8);
+          ctx.closePath();
+          ctx.fill();
+
+          // facet highlight
+          ctx.fillStyle = '#8ef2e8';
+          ctx.fillRect(-1, -8, 2, 9);
+
+          // crossguard
+          ctx.fillStyle = '#0d4d40';
+          ctx.fillRect(-7, 4, 14, 2.5);
+
+          // hilt
+          ctx.fillStyle = '#6d4c2a';
+          ctx.fillRect(-2, 6.5, 4, 6);
+
+          // pommel
+          ctx.fillStyle = '#0d4d40';
+          ctx.beginPath();
+          ctx.moveTo(-2, 12.5);
+          ctx.lineTo(2, 12.5);
+          ctx.lineTo(0, 15.5);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.restore();
         } else if (tile === TILE.EXIT) {
           const glow = 0.5 + Math.sin(time * 3) * 0.2;
           ctx.fillStyle = COLORS.exitGlow.replace('0.4', glow.toFixed(2));
